@@ -1,0 +1,48 @@
+* {
+    /* This makes it so it zeroes out any padding or margin across all elements in the html file. By doing so, it makes it easier to align elements on the website.*/
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+header {
+    background-color: black;
+    color: whitesmoke;
+
+    display: flex; /* Makes elements in the header stay next to each other rather than one below the other*/
+    align-items: center;
+}
+
+body {
+    /* The following code expands the divs in the body vertically*/
+    height: 100vh;/* vh is the height relative to the windows size.*/
+    display: flex;
+    flex-direction: column;
+}
+
+.account {
+    margin-left: auto;
+}
+
+.homePage {
+    flex: 1;
+    display: flex;
+}
+
+.classesDisplay{
+    flex: 1;
+    background-color: lightblue;
+    border-radius: 8px;
+}
+
+.schedule {
+    flex: 1;
+    background-color: lightcoral;
+    border-radius: 8px;
+}
+
+.gradesGraph {
+    flex: 1;
+    background-color:lightgoldenrodyellow;
+    border-radius: 8px;
+}
