@@ -1,0 +1,76 @@
+/* Courses CSS - Josh */
+
+/*  */
+.classesDisplay {
+    flex: 1;
+    background-color: lightblue;
+    border-radius: 8px;
+    padding: 16px;
+
+    display: flex;
+    flex-direction: column;
+}
+
+/* Big container box */
+.coursesWrapper {
+    flex: 1;
+    background-color: white;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0 /*(Josh) Trying to shrink the page*/;
+}
+
+/* Scroll area */
+.coursesContainer {
+    flex: 1;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Individual course boxes */
+.courseBox {
+  background: #f7f7f7;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.12);
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+/* Always visible */
+.courseCode {
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.courseName {
+  margin-top: 4px;
+  opacity: 0.85;
+}
+
+/* Hidden content that appears when mouse hovers over*/
+.courseExtra {
+  margin-top: 12px;
+
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+}
+
+/* On hover, it will expand */
+.courseBox:hover {
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.courseBox:hover .courseExtra {
+  opacity: 1;
+  max-height: 200px; /* large enough to fit content */
+}

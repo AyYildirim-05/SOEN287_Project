@@ -1,39 +1,100 @@
 <!DOCTYPE html>
 
 <html lang="en">
-    <head>
-        <title> Smart Course Companion</title>
-        <meta charset="utf-8"/>
-        <link rel="stylesheet" href = "styles.css">
-    </head>
 
-    <body>
-        <!-- HEADER -->
-         <header>
-            <div class = "logo">
-                <h2> Insert Concordia Logo Here</h2>
-            </div>
+<head>
+    <title> Smart Course Companion</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="courses.css">
+</head>
 
-            <div class = "account"> 
-                <h4> 
-                    This is where the profile icon will be
-                </h4>
-            </div>
-         </header>
-         
-         <div class="homePage">
-            <div class="classesDisplay"> 
-            INSERT CLASSES
-            </div>
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="logo">
+            <h2> Insert Concordia Logo Here</h2>
+        </div>
 
-            <div class="schedule">
-                INSERT SCHEDULE
-            </div>
+        <div class="account">
+            <h4>
+                This is where the profile icon will be
+            </h4>
+        </div>
+    </header>
 
-            <div class="gradesGraph"> 
-                INSERT GRADES GRAPH
+    <div class="homePage">
+
+
+        <!-- Classes Displayer (Josh)-->
+        <div class="classesDisplay">
+
+            <!-- Title -->
+            <h3>Your Courses</h3>
+
+            <!-- Provides the white box with all the class boxes -->
+            <div class="coursesWrapper">
+                <!-- Makes the box scrollable (soon)-->
+                <div class="coursesContainer">
+
+                    <!-- Example Full Detail Course Box -->
+                    <div class="courseBox">
+                        <div class="courseMain">
+                            <div class="courseCode">SOEN 287</div>
+                            <div class="courseName">Web Programming</div>
+                        </div>
+                    
+                        <!-- This is the content that will be shown if mouse hovers over it -->
+                        <div class="courseExtra">
+                            <p><strong>Credits:</strong> 3</p>
+                            <p><strong>Instructor:</strong> Abdel</p>
+                            <p><strong>Students:</strong> A lot</p>
+                            <p><strong>Schedule:</strong> Tue/Thu 10:15–11:30</p>
+                        </div>
+                    </div>
+
+
+                    <!-- Rest are title-only course boxes -->
+
+                    <div class="courseBox">SOEN 228</div>
+                    <div class="courseBox">COMP 248</div>
+                    <div class="courseBox">ENGR 213</div>
+                    <div class="courseBox">COMP 249</div>
+                    <div class="courseBox">ENGR 202</div>
+                    <div class="courseBox">ENGR 201</div>
+                </div>
             </div>
-         </div>
-         
-    </body>
+        </div>
+        <!-- End of Class Displayer -->
+         <!-- (Josh) Going to add a way to add courses later-->
+
+
+
+
+
+
+
+        <div class="schedule">
+            INSERT SCHEDULE
+        </div>
+
+
+
+
+
+
+        <div class="gradesGraph">
+            INSERT GRADES GRAPH
+        </div>
+
+
+
+    </div>
+
+
+    <script src="script.js"></script> <!-- Adding link to script.js file -->
+
+
+</body>
+
 </html>
