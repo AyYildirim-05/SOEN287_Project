@@ -3,6 +3,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
 
 header {
@@ -20,8 +21,29 @@ body {
     flex-direction: column;
 }
 
+.logo img {
+    max-width: 200px;
+}
+
 .account {
     margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.login, .signup {
+    color: whitesmoke;
+    text-decoration: none; /* Removes any underlining of the hyperlink*/
+    font-size: 16px;
+}
+
+.profile {
+    margin-left: auto;
+}
+
+.profile img {
+    max-width: 40px;
 }
 
 .homePage {
