@@ -1,0 +1,24 @@
+<!-- Remove Course Modal -->
+<div id="deleteCourseModal" class="modalOverlay hidden">
+  <div class="modal">
+    <div class="modalHeader">
+      <h3>Remove Course</h3>
+      <button id="closeDeleteModalBtn" class="iconBtn" type="button">✕</button>
+    </div>
+
+    <div class="modalBody">
+      <p id="deleteText"></p>
+
+      <label>
+        Type the course code to confirm:
+        <input id="deleteConfirmInput" type="text" placeholder="e.g., SOEN 287" />
+      </label>
+
+      <div class="modalFooter">
+        <button type="button" id="cancelDeleteBtn" class="btnSecondary">Cancel</button>
+        <button type="button" id="confirmDeleteBtn" class="btnPrimary" disabled>Remove</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End of Remove Course Modal -->

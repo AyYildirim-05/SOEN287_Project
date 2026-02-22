@@ -9,26 +9,26 @@
     <link rel="stylesheet" href="courses.css">
 </head>
 
-    <body>
-        <!-- HEADER -->
-         <header>
-            <div class = "logo">
-                <img src="Images\concordia_logo.png">
-            </div>
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="logo">
+            <img src="Images\concordia_logo.png">
+        </div>
 
-            <div class = "account"> 
-                <!--ADD HREF LINK FOR THE SIGNUP OR LOGIN OPTION-->
-                <a href="#" class="login">Log In</a> 
-                <a href="#" class="signup">Sign Up</a>
+        <div class="account">
+            <!--ADD HREF LINK FOR THE SIGNUP OR LOGIN OPTION-->
+            <a href="#" class="login">Log In</a>
+            <a href="#" class="signup">Sign Up</a>
 
-                <div class="profile"> 
-                    <img src="Images\profile_icon.png">
-                </div>
+            <div class="profile">
+                <img src="Images\profile_icon.png">
             </div>
-         </header>
-         
-         <div class="homePage">
-            <!-- Classes Displayer (Josh)-->
+        </div>
+    </header>
+
+    <div class="homePage">
+        <!-- Classes Displayer (Josh)-->
         <div class="classesDisplay">
 
             <!-- Title -->
@@ -36,40 +36,28 @@
 
             <!-- Provides the white box with all the class boxes -->
             <div class="coursesWrapper">
-                <!-- Makes the box scrollable (soon)-->
+
+                <!-- Search Bar-->
+                <div class="searchBar">
+                    <input type="text" placeholder="Search courses..." />
+                </div>
+
+                <!-- Makes the box scrollable-->
                 <div class="coursesContainer">
 
-                    <!-- Example Full Detail Course Box -->
-                    <div class="courseBox">
-                        <div class="courseMain">
-                            <div class="courseCode">SOEN 287</div>
-                            <div class="courseName">Web Programming</div>
-                        </div>
-                    
-                        <!-- This is the content that will be shown if mouse hovers over it -->
-                        <div class="courseExtra">
-                            <p><strong>Credits:</strong> 3</p>
-                            <p><strong>Instructor:</strong> Abdel</p>
-                            <p><strong>Students:</strong> A lot</p>
-                            <p><strong>Schedule:</strong> Tue/Thu 10:15–11:30</p>
-                        </div>
+                    <!-- Courses boxes go here -->
+
+                    <!-- Add Course Button -->
+                    <div class="courseBox addCourseBox">
+                        <div class="plusIcon">+</div>
+                        <div>Add Course</div>
                     </div>
-
-
-                    <!-- Rest are title-only course boxes -->
-
-                    <div class="courseBox">SOEN 228</div>
-                    <div class="courseBox">COMP 248</div>
-                    <div class="courseBox">ENGR 213</div>
-                    <div class="courseBox">COMP 249</div>
-                    <div class="courseBox">ENGR 202</div>
-                    <div class="courseBox">ENGR 201</div>
                 </div>
             </div>
         </div>
         <!-- End of Class Displayer -->
-        </div>
-        <!-- (Josh) Going to add a way to add courses later-->
+    </div>
+    <!-- (Josh) Going to add a way to add courses later-->
 
 
 
@@ -77,18 +65,18 @@
 
 
 
-        <div class="schedule">
-            INSERT SCHEDULE
-        </div>
+    <div class="schedule">
+        INSERT SCHEDULE
+    </div>
 
 
 
 
 
 
-        <div class="gradesGraph">
-            INSERT GRADES GRAPH
-        </div>
+    <div class="gradesGraph">
+        INSERT GRADES GRAPH
+    </div>
 
 
 
@@ -96,7 +84,7 @@
 
 
     <script src="script.js"></script> <!-- Adding link to script.js file -->
-
+    <script src="courseform.js"></script> <!-- This helps the course section -->
 
 </body>
 

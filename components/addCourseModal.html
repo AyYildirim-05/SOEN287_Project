@@ -1,0 +1,49 @@
+<!-- Add Course Modal (Josh) -->
+    <div id="addCourseModal" class="modalOverlay hidden">
+        <div class="modal">
+            <div class="modalHeader">
+                <h3>Add a Course</h3>
+                <button id="closeModalBtn" class="iconBtn" type="button">✕</button>
+            </div>
+
+            <form id="addCourseForm" class="modalBody">
+                <label>
+                    Course Code
+                    <input id="mCourseCode" type="text" placeholder="SOEN 287" required />
+                </label>
+
+                <label>
+                    Course Name
+                    <input id="mCourseName" type="text" placeholder="Web Programming" required />
+                </label>
+
+                <div class="twoCol">
+                    <label>
+                        Credits
+                        <input id="mCredits" type="number" min="0" step="0.5" placeholder="3" required />
+                    </label>
+
+                    <label>
+                        Section
+                        <input id="mSection" type="text" placeholder="UU" />
+                    </label>
+                </div>
+
+                <label>
+                    Instructor
+                    <input id="mInstructor" type="text" placeholder="Abdel" />
+                </label>
+
+                <label>
+                    Schedule (text for now)
+                    <input id="mSchedule" type="text" placeholder="Tue/Thu 2:45–4:00" />
+                </label>
+
+                <div class="modalFooter">
+                    <button type="button" id="cancelBtn" class="btnSecondary">Cancel</button>
+                    <button type="submit" class="btnPrimary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- End of Add Course Modal -->
