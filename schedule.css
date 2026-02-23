@@ -1,0 +1,111 @@
+/* Schedule CSS - Alessandro */
+
+.scheduleDisplay {
+  flex: 1;
+  background-color: rgb(201, 105, 105);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.scheduleWrapper {
+  flex: 1;
+  background-color: white;
+  border-radius: 16px; 
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.scheduleContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Sorting */
+.sortSection {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    align-self: center;
+    margin-bottom: 15px;
+    background-color: #f7f7f7;
+    border-radius: 8px;
+    padding: 16px;
+    width: 100%;
+}
+
+.sortOptions {
+    display: flex;
+    gap: 12px;
+}
+
+.sortOptions label {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Adds space between the actual checkbox square and the text label */
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+#sortScheduleButton {
+  background: #f7f7f7;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.12);
+  cursor: pointer;
+  
+  transition: all 0.3s ease;
+}
+
+/* Assignments */
+/*Used for active and archvive assingment sections*/
+.assignmentsSection, .archiveSection { 
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 15px;
+    background-color: #f7f7f7;
+    border-radius: 8px;
+    padding: 16px;
+    width: 100%;
+}
+
+.assignmentBox {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    border-style: solid;
+    border-radius: 7px;
+    border-width: 1px;
+    border-color: black;
+    padding: 15px;
+}
+
+.assignmentText {
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* Archive*/
+#archiveScheduleButton {
+  background: #f7f7f7;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.12);
+  cursor: pointer;
+  margin-top: auto; /* Pushes it to the botton of the div */
+  align-self: center;
+  height: 5%;
+  width: 20%;
+
+  transition: all 0.3s ease;
+}
+
+.hidden {
+    display: none !important;
+}
