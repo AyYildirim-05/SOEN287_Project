@@ -62,8 +62,12 @@ function setupAddCourseModal() {
         const instructor = document.getElementById("mInstructor").value.trim();
         const schedule = document.getElementById("mSchedule").value.trim();
 
-        const card = document.createElement("div");
-        card.className = "courseBox";
+        const card = document.createElement("a");
+card.className = "courseBox";
+card.href = `course.html?code=${encodeURIComponent(code)}`;
+card.style.textDecoration = "none";
+card.style.color = "inherit";
+
         card.innerHTML = `
   <div class="courseMain">
     <div class="courseCode">${escapeHtml(code)}</div>
