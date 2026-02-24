@@ -1,0 +1,19 @@
+/* Grades Graph CSS - Sahon*/
+
+.gradesGraph {
+    flex: 1;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    
+}
+
+.graphContainer {
+    flex: 0.25;
+    background-color: white;
+    border-radius: 16px; 
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}

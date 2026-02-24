@@ -6,8 +6,16 @@ const gradesGraph = new Chart("gradesChart", {
     data: {
         labels: courses,
         datasets: [{
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            backgroundColor: 'lightgoldenrodyellow',
             data: grades
         }]
+    },
+
+    options: {
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
     }
 })
