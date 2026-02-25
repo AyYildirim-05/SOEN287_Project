@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Course Page</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../courses.css">
+  <link rel="stylesheet" href="coursepage.css">
+</head>
+
+<body>
+  <!-- HEADER (same as index, but with Back link) -->
+  <header>
+    <div class="logo">
+      <a href="../index.html" style="text-decoration:none; color:inherit; font-weight:700;">
+        ← Back to Dashboard
+      </a>
+    </div>
+  </header>
+
+  <div class="homePage">
+
+    <!-- Top Row-->
+    <div class="courseTopRow">
+      <div class="courseInfoCard">
+        <h1 id="courseTitle"></h1>
+        <p id="courseInstructor"></p>
+        <p id="courseCredits"></p>
+      </div>
+    </div>
+
+    <!-- THREE COLUMNS BELOW -->
+    <div class="classesDisplay">
+      <h3>Assignments</h3>
+      <div class="coursesWrapper">
+        <div class="coursesContainer" style="overflow:visible;">
+          <div class="courseBox staticBox">
+            <div class="courseMain">
+              <div class="courseCode">Assignments</div>
+            </div>
+            <div class="courseExtra alwaysOpen">
+              <ul id="assignmentList"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GREEN ANNOUNCEMENTS COLUMN -->
+    <div class="schedule"> <!-- Reusing schedule -->
+      <h3>Announcements</h3>
+      <div class="scheduleDisplay greenAnnouncements">
+        <ul id="announcementList"></ul>
+      </div>
+    </div>
+
+    <!-- GRADES COLUMN -->
+    <div class="gradesGraph">
+      <h3>Grades</h3>
+      <div class="graphContainer">
+        <canvas id="gradesCanvas" width="400" height="250"></canvas>
+        <ul id="gradeList"></ul>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="coursepage.js"></script>
+</body>
+
+</html>

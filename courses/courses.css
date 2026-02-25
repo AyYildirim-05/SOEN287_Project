@@ -43,6 +43,8 @@
   cursor: pointer;
 
   transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
 }
 
 /* Always visible */
@@ -71,11 +73,16 @@
 .courseBox:hover {
   background: white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  text-decoration: none;
 }
 
 .courseBox:hover .courseExtra {
   opacity: 1;
   max-height: 200px;
+}
+
+.courseBox:visited {
+  color: inherit;
 }
 
 /*Cursor Styling*/

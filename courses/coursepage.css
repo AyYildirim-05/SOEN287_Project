@@ -1,0 +1,165 @@
+/* =====================================================
+   COURSE PAGE - OVERRIDE GLOBAL styles.css
+   ===================================================== */
+
+/* Cancel global body flex behavior */
+body {
+  height: auto;
+  display: block;
+}
+
+/* =====================================================
+   MAIN GRID LAYOUT
+   ===================================================== */
+
+.homePage {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  padding: 30px;
+
+  align-items: start;
+  align-content: start;
+}
+
+/* =====================================================
+   TOP FULL-WIDTH COURSE INFO
+   ===================================================== */
+
+.courseTopRow {
+  grid-column: 1 / -1;
+}
+
+.courseInfoCard {
+  padding: 24px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #f1f5f9;
+}
+
+/* =====================================================
+   THREE MAIN COLUMNS
+   ===================================================== */
+
+.classesDisplay,
+.schedule,
+.gradesGraph {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  border-radius: 14px;
+
+  min-height: 75vh; /* balanced card height */
+}
+
+/* Column colors */
+.classesDisplay { background: #fef3c7; }
+.schedule       { background: #dcfce7; }
+.gradesGraph    { background: #e0f2fe; }
+
+/* =====================================================
+   INNER WHITE BOXES
+   ===================================================== */
+
+.coursesWrapper,
+.scheduleDisplay,
+.graphContainer {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 15px;
+
+  flex: 1;
+  overflow-y: auto;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* =====================================================
+   ASSIGNMENT CARDS
+   ===================================================== */
+
+#assignmentList {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.assignmentCard {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+  transition: transform 0.2s ease;
+}
+
+.assignmentCard:hover {
+  transform: translateY(-3px);
+}
+
+.assignmentHeader {
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.assignmentDetails p {
+  margin: 3px 0;
+  font-size: 14px;
+  color: #444;
+}
+
+/* =====================================================
+   ANNOUNCEMENTS
+   ===================================================== */
+
+#announcementList {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#announcementList li {
+  background: #f1f5f9;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* =====================================================
+   GRADES GRAPH
+   ===================================================== */
+
+.graphContainer canvas {
+  width: 100%;
+  height: 260px;
+  display: block;
+  margin-bottom: 15px;
+}
+
+#gradeList {
+  list-style: none;
+  padding: 0;
+}
+
+#gradeList li {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+/* =====================================================
+   BACK LINK
+   ===================================================== */
+
+header a {
+  text-decoration: none;
+  font-weight: 700;
+  color: inherit;
+}
+
+header a:hover {
+  text-decoration: underline;
+}

@@ -6,9 +6,9 @@
     <title> Smart Course Companion</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="courses.css">
+    <link rel="stylesheet" href="courses/courses.css">
     <link rel="stylesheet" href="schedule.css">
-    <link rel = "stylesheet" href = "Graph/graphStyles.css">
+    <link rel="stylesheet" href="Graph/graphStyles.css">
 </head>
 
 <body>
@@ -36,6 +36,20 @@
             <!-- Title -->
             <h3>Your Courses</h3>
 
+            <div class="role-toggle" style="display:flex; gap:12px; align-items:center;">
+                <span><b>View:</b></span>
+
+                <label>
+                    <input type="radio" name="role" value="student" checked>
+                    Student
+                </label>
+
+                <label>
+                    <input type="radio" name="role" value="teacher">
+                    Teacher
+                </label>
+            </div>
+
             <!-- Provides the white box with all the class boxes -->
             <div class="coursesWrapper">
 
@@ -48,14 +62,77 @@
                 <div class="coursesContainer">
 
                     <!-- Courses boxes go here -->
-                    <a href="course.html?code=SOEN228" class="courseBox">
-                        Basic box (click add course button below for better detailed box)
+                    <a href="courses/course.html?code=SOEN287" class="courseBox">
+                        <div class="courseMain">
+                            <div class="courseCode">SOEN 287</div>
+                            <div class="courseName">Web Programming</div>
+                        </div>
+
+                        <div class="courseExtra">
+                            <p><strong>Credits:</strong> 3</p>
+                            <p><strong>Section:</strong> U</p>
+                            <p><strong>Instructor:</strong> Abdel</p>
+                            <p><strong>Schedule:</strong> Tue/Thu 2:45–4:00</p>
+
+                            <div class="courseActions teacher-only">
+                                <button class="deleteBtn" type="button">Remove</button>
+                            </div>
+
+                        </div>
+                    </a>
+
+                    <a href="courses/course.html?code=SOEN228" class="courseBox">
+                        <div class="courseMain">
+                            <div class="courseCode">SOEN 228</div>
+                            <div class="courseName">System Hardware</div>
+                        </div>
+
+                        <div class="courseExtra">
+                            <p><strong>Credits:</strong> 3</p>
+                            <p><strong>Section:</strong> W</p>
+                            <p><strong>Instructor:</strong> Prof. 228</p>
+                            <p><strong>Schedule:</strong> Mon/Wed 2:45–4030</p>
+
+                            <div class="courseActions teacher-only">
+                                <button class="deleteBtn" type="button">Remove</button>
+                            </div>
+
+                        </div>
+                    </a>
+
+                    <a href="courses/course.html?code=COMP248" class="courseBox">
+                        <div class="courseMain">
+                            <div class="courseCode">COMP 249</div>
+                            <div class="courseName">Object-Oriented Programming II</div>
+                        </div>
+
+                        <div class="courseExtra">
+                            <p><strong>Credits:</strong> 3</p>
+                            <p><strong>Section:</strong> S</p>
+                            <p><strong>Instructor:</strong> Mendhurwar</p>
+                            <p><strong>Schedule:</strong> Thr 15:45–8:15</p>
+
+                            <div class="courseActions teacher-only">
+                                <button class="deleteBtn" type="button">Remove</button>
+                            </div>
+
+                        </div>
                     </a>
 
                     <!-- Add Course Button -->
-                    <div class="courseBox addCourseBox">
-                        <div class="plusIcon">+</div>
-                        <div>Add Course</div>
+                    <div class="student-only">
+                        <div class="courseBox addCourseBox">
+                            <div class="plusIcon">+</div>
+                            <div>Enroll in a Course</div>
+                        </div>
+                    </div>
+
+
+                    <div class="teacher-only">
+                        <div class="courseBox addCourseBox">
+                            <div class="plusIcon">+</div>
+                            <div>Add Course</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -152,7 +229,7 @@
         <!-- Grades Graph (Sahon) -->
         <div class="gradesGraph">
             <h3>Your Grades</h3>
-            <div class="graphContainer"> 
+            <div class="graphContainer">
                 <canvas id="gradesChart"></canvas>
             </div>
         </div>
@@ -160,10 +237,13 @@
     </div>
 
 
-    <script src="script.js"></script> <!-- Adding link to script.js file -->
-    <script src="courseform.js"></script> <!-- This helps the course section -->
-    <script src = "https://cdn.jsdelivr.net/npm/chart.js@4.5.0"></script> <!-- This is to importat Chart.js -->
-    <script src = "Graph\gradesGraph.js"></script> <!-- This is the script for the grades graph -->
+    <!--<script src="script.js"></script> File has no use -->
+
+    <script src="courses/courseform.js"></script> <!-- This helps the course section -->
+    <script src="courses/roleToggle.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0"></script> <!-- This is to importat Chart.js -->
+    <script src="Graph\gradesGraph.js"></script> <!-- This is the script for the grades graph -->
 
 </body>
 
