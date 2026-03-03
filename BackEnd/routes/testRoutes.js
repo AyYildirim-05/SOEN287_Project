@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
+const { testController } = require("../controller/testController");
 
-router.get("/test", (req, res) => {
-    res.json({ message: "Backend is working" });
-});
+
+router.get("/test", testController);
 
 module.exports = router;
 
