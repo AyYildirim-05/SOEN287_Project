@@ -5,19 +5,30 @@
   <meta charset="UTF-8">
   <title>Course Page</title>
   <link rel="stylesheet" href="../styles.css">
-  <link rel="stylesheet" href="../courses.css">
+  <link rel="stylesheet" href="courses.css">
   <link rel="stylesheet" href="coursepage.css">
 </head>
 
 <body>
-  <!-- HEADER (same as index, but with Back link) -->
-  <header>
-    <div class="logo">
-      <a href="../index.html" style="text-decoration:none; color:inherit; font-weight:700;">
-        ← Back to Dashboard
-      </a>
-    </div>
-  </header>
+  <!-- HEADER -->
+<header>
+
+  <div class="logo">
+      <img src="../Images/concordia_logo.png">
+  </div>
+
+  <div class="account">
+
+      <a href="../Auths/sign_in.html" class="login">Log In</a>
+      <a href="../Auths/sign_up.html" class="signup">Sign Up</a>
+
+      <div class="profile">
+          <img src="../Images/profile_icon.png">
+      </div>
+
+  </div>
+
+</header>
 
   <div class="homePage">
 
@@ -27,29 +38,33 @@
         <h1 id="courseTitle"></h1>
         <p id="courseInstructor"></p>
         <p id="courseCredits"></p>
+        <p id="courseTAs"></p>
+        <button id="editCourseInfoBtn" class="btnPrimary teacher-only" type="button">
+          Edit course info
+        </button>
       </div>
     </div>
 
     <!-- THREE COLUMNS BELOW -->
     <div class="classesDisplay">
       <h3>Assignments</h3>
-      <div class="coursesWrapper">
-        <div class="coursesContainer" style="overflow:visible;">
-          <div class="courseBox staticBox">
-            <div class="courseMain">
-              <div class="courseCode">Assignments</div>
-            </div>
-            <div class="courseExtra alwaysOpen">
-              <ul id="assignmentList"></ul>
-            </div>
-          </div>
-        </div>
-      </div>
+
+      <button id="addAssignmentBtn" class="addButton">
+        + Add Assignment
+      </button>
+
+      <!-- Matches index.html assignment layout -->
+      <div class="assignmentsSection" id="assignmentsSection"></div>
     </div>
 
     <!-- GREEN ANNOUNCEMENTS COLUMN -->
     <div class="schedule"> <!-- Reusing schedule -->
       <h3>Announcements</h3>
+
+      <button id="addAnnouncementBtn" class="addButton">
+        + Add Announcement
+      </button>
+
       <div class="scheduleDisplay greenAnnouncements">
         <ul id="announcementList"></ul>
       </div>
@@ -65,6 +80,8 @@
     </div>
 
   </div>
+
+
 
   <script src="coursepage.js"></script>
 </body>

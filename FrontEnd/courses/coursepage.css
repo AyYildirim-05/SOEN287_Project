@@ -79,35 +79,59 @@ body {
    ASSIGNMENT CARDS
    ===================================================== */
 
-#assignmentList {
-  list-style: none;
-  padding: 0;
+/* =====================================================
+   ASSIGNMENTS (match index.html layout)
+   ===================================================== */
+
+.assignmentsSection {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-
-.assignmentCard {
-  background: #f8fafc;
+  gap: 15px;
+  margin-bottom: 15px;
+  background-color: #f7f7f7;
+  border-radius: 8px;
   padding: 16px;
-  border-radius: 10px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.06);
-  transition: transform 0.2s ease;
+  width: 100%;
 }
 
-.assignmentCard:hover {
-  transform: translateY(-3px);
+.assignmentBox {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  border: 1px solid black;
+  border-radius: 7px;
+  padding: 15px;
 }
 
-.assignmentHeader {
-  font-size: 16px;
-  margin-bottom: 6px;
+.assignmentText {
+  display: flex;
+  flex-direction: column;
 }
 
-.assignmentDetails p {
-  margin: 3px 0;
-  font-size: 14px;
-  color: #444;
+.assignmentText h4,
+.assignmentText h5,
+.assignmentText p {
+  margin: 2px 0;
+}
+
+.hidden { display: none; }
+
+/* ====================================================
+   Assignment Buttons
+   ==================================================== */
+
+.addButton {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.addButton:hover {
+  background-color: #45a049;
 }
 
 /* =====================================================
