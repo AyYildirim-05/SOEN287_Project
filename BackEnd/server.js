@@ -1,5 +1,5 @@
-require("dotenv").config();
-require("./database/db");
+require("dotenv").config({ path: "./BackEnd/.env" });
+const { auth, db } = require("./database/firebase");
 
 const express = require("express");
 const cors = require("cors");
@@ -17,8 +17,6 @@ app.use(express.static("FrontEnd"));
 // Test route
 app.use("/api", testRoutes);
 app.use("/api/auth", authRoutes); // Use auth routes
-// app.use("/api/student", require("./routes/studentRoutes"));
-// app.use("/api/teacher", require("./routes/teacherRoutes"));
 
 // Port
 const PORT = process.env.PORT || 5500;

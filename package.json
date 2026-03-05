@@ -6,16 +6,18 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node BackEnd/server.js",
-    "dev": "nodemon BackEnd/server.js"
+    "dev": "nodemon BackEnd/server.js",
+    "seed": "node BackEnd/scripts/seedData.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "better-sqlite3": "^12.6.2",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
-    "firebase-admin": "^13.6.1"
+    "firebase-admin": "^13.6.1",
+    "nodemon": "^3.1.14",
+    "uuid": "^13.0.0"
   }
 }
