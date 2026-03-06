@@ -97,3 +97,14 @@ Once the server is running, the application will be accessible at:
   - `Auths/`: Sign-in and Sign-up pages.
   - `courses/`: Course management pages and components.
   - `Graph/`: Grades and performance visualization.
+
+## Deliverable 1 Features 
+- Course Overview, ability to navigate between individual course pages
+- Assignment scheduler frontend
+- Hard-Coded chart displaying grades
+- Sign Up and Log In System using Firebase
+
+## Deliverable 2 Features To Be Implemented
+- Improved Sign Up and Log In system with proper authentication
+- Grades chart updates dynamically based on grades stored in a database
+- Assignments can be sorted by due date, completed and late submissions
