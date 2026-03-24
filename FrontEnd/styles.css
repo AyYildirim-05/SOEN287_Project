@@ -16,7 +16,7 @@ header {
 
 body {
     /* The following code expands the divs in the body vertically*/
-    height: 100vh;/* vh is the height relative to the windows size.*/
+    /*height: 100vh;vh is the height relative to the windows size.*/
     display: flex;
     flex-direction: column;
 }
@@ -47,8 +47,9 @@ body {
 }
 
 .homePage {
-    flex: 1;
+    /*flex: 1;*/
     display: flex;
+    flex-direction: column;
 }
 
 .classesDisplay{
