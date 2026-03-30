@@ -1,21 +1,32 @@
-/**
- * This is a reference for the User data structure in Firestore.
- * Firestore is schema-less, so this is enforced at the application level.
- */
 
-const teacherSchema = {
-    uid: String,            // From Firebase Auth (Not Null)
-    email: String,          // From Firebase Auth (Not Null)
-    fname: String,          // First Name (Not Null)
-    lname: String,          // Last Name (Not Null)
-    role: "teacher",           // User Role e.g., "student", "admin" (Not Null)
-    
-    // Optional / Nullable fields depending on role
-    teachertID: String,      // e.g., "40123456"
-    major: String,          // e.g., "Software Engineering"
-    teachingClasses: Array, // Array of document IDs from 'courses' collection
-    createdAt: Date,
-    updatedAt: Date
-};
+class Teacher {
+    constructor(data) {
+        this.uid = data.uid;
+        this.email = data.email;
+        this.fname = data.fname;
+        this.lname = data.lname;
+        this.role = "teacher";
+        this.teacherID = data.teacherID || data.teachertID || ""; // Fixed typo from teachertID
+        this.major = data.major || "";
+        this.teachingClasses = data.teachingClasses || [];
+        this.createdAt = data.createdAt || new Date();
+        this.updatedAt = data.updatedAt || new Date();
+    }
 
-module.exports = { teacherSchema };
+    toFirestore() {
+        return {
+            uid: this.uid,
+            email: this.email,
+            fname: this.fname,
+            lname: this.lname,
+            role: this.role,
+            teacherID: this.teacherID,
+            major: this.major,
+            teachingClasses: this.teachingClasses,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt
+        };
+    }
+}
+
+module.exports = Teacher;

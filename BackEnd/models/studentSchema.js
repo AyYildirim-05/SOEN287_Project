@@ -1,20 +1,34 @@
-/**
- * This is a reference for the Student data structure in Firestore.
- * Firestore is schema-less, so this is enforced at the application level.
- */
 
-const studentSchema = {
-    uid: String,            // From Firebase Auth
-    email: String,          // From Firebase Auth
-    firstName: String,
-    lastName: String,
-    role: "student",        // Hardcoded for this role
-    studentID: String,      // e.g., "40123456"
-    major: String,          // e.g., "Software Engineering"
-    enrolledCourses: Array, // Array of document IDs from 'courses' collection
-    gpa: Number,
-    createdAt: Date,
-    updatedAt: Date
-};
+class Student {
+    constructor(data) {
+        this.uid = data.uid;
+        this.email = data.email;
+        this.fname = data.fname;
+        this.lname = data.lname;
+        this.role = "student";
+        this.studentID = data.studentID || "";
+        this.major = data.major || "";
+        this.enrolledCourses = data.enrolledCourses || [];
+        this.gpa = data.gpa || 0.0;
+        this.createdAt = data.createdAt || new Date();
+        this.updatedAt = data.updatedAt || new Date();
+    }
 
-module.exports = { studentSchema };
+    toFirestore() {
+        return {
+            uid: this.uid,
+            email: this.email,
+            fname: this.fname,
+            lname: this.lname,
+            role: this.role,
+            studentID: this.studentID,
+            major: this.major,
+            enrolledCourses: this.enrolledCourses,
+            gpa: this.gpa,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt
+        };
+    }
+}
+
+module.exports = Student;
