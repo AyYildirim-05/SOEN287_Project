@@ -16,6 +16,17 @@ document.addEventListener("DOMContentLoaded", () => {
         userNameSpan.textContent = `Welcome, ${user.fname} ${user.lname}!`;
         userNameSpan.className = "user-name";
 
+        const roleBadge = document.createElement("span");
+        roleBadge.textContent = user.role.toUpperCase();
+        roleBadge.className = "role-badge";
+        roleBadge.style.backgroundColor = user.role === "teacher" ? "#0077cc" : "#28a745";
+        roleBadge.style.color = "white";
+        roleBadge.style.padding = "2px 8px";
+        roleBadge.style.borderRadius = "12px";
+        roleBadge.style.fontSize = "0.75rem";
+        roleBadge.style.marginLeft = "8px";
+        roleBadge.style.fontWeight = "800";
+
         const logoutBtn = document.createElement("button");
         logoutBtn.textContent = "Log Out";
         logoutBtn.className = "logout-btn";
@@ -23,11 +34,16 @@ document.addEventListener("DOMContentLoaded", () => {
         logoutBtn.addEventListener("click", () => {
             localStorage.removeItem("user");
             localStorage.removeItem("token");
+            localStorage.removeItem("role"); // Clear the role
             alert("Logged out successfully!");
             window.location.reload();
         });
 
+        userNameSpan.appendChild(roleBadge); // Add badge next to name
         accountSection.insertBefore(userNameSpan, profileIcon);
         accountSection.insertBefore(logoutBtn, profileIcon);
+
+        // Ensure role UI is applied for current user
+        window.dispatchEvent(new Event("rolechange"));
     }
 });

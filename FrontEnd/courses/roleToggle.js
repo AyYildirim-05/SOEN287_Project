@@ -17,18 +17,33 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function getRole() {
-  return localStorage.getItem("role") || "student";
+  const role = localStorage.getItem("role");
+  if (role) return role;
+
+  const userStr = localStorage.getItem("user");
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      if (user && user.role) return user.role;
+    } catch (e) {
+      console.error("Error parsing user for role:", e);
+    }
+  }
+
+  return "student";
 }
 
 function applyRoleUI() {
   const role = getRole();
 
   document.querySelectorAll(".teacher-only").forEach(el => {
-    el.style.display = (role === "teacher") ? "" : "none";
+    // If it's a courseBox wrapper, we might want flex, but block is safer for generic divs.
+    // However, the addCourseBox itself is flex.
+    el.style.display = (role === "teacher") ? "block" : "none";
   });
 
   document.querySelectorAll(".student-only").forEach(el => {
-    el.style.display = (role === "student") ? "" : "none";
+    el.style.display = (role === "student") ? "block" : "none";
   });
 
   // Optional: update a label if you have one

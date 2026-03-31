@@ -50,44 +50,45 @@
     </div>
 
     <!-- THREE COLUMNS BELOW -->
-    <div class="classesDisplay">
-      <h3>Assignments</h3>
+    <div class="homePageLayout">
+      <div class="classesDisplay">
+        <h3>Assignments</h3>
 
-      <button id="addAssignmentBtn" class="addButton">
-        + Add Assignment
-      </button>
+        <button id="addAssignmentBtn" class="addButton teacher-only">
+          + Add Assignment
+        </button>
 
-      <!-- Matches index.html assignment layout -->
-      <div class="assignmentsSection" id="assignmentsSection"></div>
-    </div>
-
-    <!-- GREEN ANNOUNCEMENTS COLUMN -->
-    <div class="schedule"> <!-- Reusing schedule -->
-      <h3>Announcements</h3>
-
-      <button id="addAnnouncementBtn" class="addButton">
-        + Add Announcement
-      </button>
-
-      <div class="scheduleDisplay greenAnnouncements">
-        <ul id="announcementList"></ul>
+        <!-- Matches index.html assignment layout -->
+        <div class="assignmentsSection" id="assignmentsSection"></div>
       </div>
-    </div>
 
-    <!-- GRADES COLUMN -->
-    <div class="gradesGraph">
-      <h3>Grades</h3>
-      <div class="graphContainer">
-        <canvas id="gradesCanvas" width="400" height="250"></canvas>
-        <ul id="gradeList"></ul>
+      <!-- GREEN ANNOUNCEMENTS COLUMN -->
+      <div class="schedule"> <!-- Reusing schedule -->
+        <h3>Announcements</h3>
+
+        <button id="addAnnouncementBtn" class="addButton teacher-only">
+          + Add Announcement
+        </button>
+
+        <div class="scheduleDisplay greenAnnouncements">
+          <ul id="announcementList"></ul>
+        </div>
+      </div>
+
+      <!-- GRADES COLUMN -->
+      <div class="gradesGraph">
+        <h3>Grades</h3>
+        <div class="graphContainer">
+          <canvas id="gradesCanvas" width="400" height="250"></canvas>
+          <ul id="gradeList"></ul>
+        </div>
       </div>
     </div>
 
   </div>
 
-
-
   <script src="coursepage.js"></script>
+  <script src="roleToggle.js"></script>
 </body>
 
 </html>

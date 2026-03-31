@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Save user data/token for other pages
                     localStorage.setItem("user", JSON.stringify(data.user));
                     localStorage.setItem("token", data.token);
+                    localStorage.setItem("role", data.user.role); // Store the role specifically for roleToggle.js
                     
                     alert("Login successful! Welcome, " + data.user.fname);
                     window.location.href = "../index.html"; // Redirect to home

@@ -28,95 +28,83 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupAddCourseModal();
     setupSafeDeleteModal();
     initDefaultEnrollment();
-    seedCatalogFromPageIfEmpty();
     setupEnrollCourseModal();
     renderCourses();
 
 });
 
-function getCatalog() {
-    return JSON.parse(localStorage.getItem("courseCatalog")) || [];
+async function getCatalog() {
+    try {
+        const res = await fetch("/api/courses");
+        if (!res.ok) throw new Error(`Failed to fetch courses: ${res.status}`);
+        return await res.json();
+    } catch (err) {
+        console.error("Error fetching catalog:", err);
+        return [];
+    }
 }
 
-function setCatalog(catalog) {
-    localStorage.setItem("courseCatalog", JSON.stringify(catalog));
+async function addCourseToBackend(courseObj) {
+    try {
+        const res = await fetch("/api/courses/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(courseObj)
+        });
+        if (!res.ok) throw new Error(`Failed to add course: ${res.status}`);
+        return await res.json();
+    } catch (err) {
+        console.error("Error adding course:", err);
+        return null;
+    }
 }
 
-function seedCatalogFromPageIfEmpty() {
-    const catalog = getCatalog();
-    if (catalog.length > 0) return;
-
-    const seeded = [];
-
-    document.querySelectorAll("a.courseBox").forEach(a => {
-        // skip the extra boxes (they are divs, but just in case)
-        if (a.classList.contains("addCourseBox")) return;
-
-        const code = a.querySelector(".courseCode")?.textContent?.trim();
-        const name = a.querySelector(".courseName")?.textContent?.trim();
-
-        if (code && name) {
-            seeded.push({
-                code,
-                name,
-                credits: "",     
-                section: "",
-                instructor: "",
-                schedule: ""
-            });
-        }
-    });
-
-    if (seeded.length > 0) setCatalog(seeded);
-}
-
-function upsertCatalogCourse(courseObj) {
-    const catalog = getCatalog();
-    const idx = catalog.findIndex(c => (c.code || "").toUpperCase() === courseObj.code.toUpperCase());
-    if (idx >= 0) catalog[idx] = courseObj;
-    else catalog.push(courseObj);
-    setCatalog(catalog);
+async function deleteCourseFromBackend(id) {
+    try {
+        const res = await fetch(`/api/courses/delete/${id}`, {
+            method: "DELETE"
+        });
+        if (!res.ok) throw new Error(`Failed to delete course: ${res.status}`);
+        return await res.json();
+    } catch (err) {
+        console.error("Error deleting course:", err);
+        return null;
+    }
 }
 
 //Add course modal
 function setupAddCourseModal() {
-    const addBoxes = document.querySelectorAll(".teacher-only .addCourseBox"); const modal = document.getElementById("addCourseModal");
+    const addBoxes = document.querySelectorAll(".teacher-only .addCourseBox");
+    const modal = document.getElementById("addCourseModal");
     const closeBtn = document.getElementById("closeModalBtn");
     const cancelBtn = document.getElementById("cancelBtn");
     const form = document.getElementById("addCourseForm");
-    const coursesContainer = document.querySelector(".coursesContainer");
 
-    let activeWrapper = null;
+    if (!modal || !form) return;
 
-    function openModal(clickedBox) {
-        activeWrapper = clickedBox.closest(".student-only, .teacher-only") || clickedBox;
+    function openModal() {
         modal.classList.remove("hidden");
-        document.getElementById("mCourseCode").focus();
+        const codeInput = document.getElementById("mCourseCode");
+        if (codeInput) codeInput.focus();
     }
 
     function closeModal() {
         modal.classList.add("hidden");
         form.reset();
-        activeWrapper = null;
     }
 
-    // Attach click to both boxes
     addBoxes.forEach(box => {
-        box.addEventListener("click", () => openModal(box));
+        box.onclick = openModal;
     });
 
-    closeBtn.addEventListener("click", closeModal);
-    cancelBtn.addEventListener("click", closeModal);
+    if (closeBtn) closeBtn.onclick = closeModal;
+    if (cancelBtn) cancelBtn.onclick = closeModal;
 
-    modal.addEventListener("click", (e) => {
+    modal.onclick = (e) => {
         if (e.target === modal) closeModal();
-    });
+    };
 
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
-    });
-
-    form.addEventListener("submit", (e) => {
+    form.onsubmit = async (e) => {
         e.preventDefault();
 
         const code = document.getElementById("mCourseCode").value.trim();
@@ -125,41 +113,19 @@ function setupAddCourseModal() {
         const section = document.getElementById("mSection").value.trim();
         const instructor = document.getElementById("mInstructor").value.trim();
         const schedule = document.getElementById("mSchedule").value.trim();
-        upsertCatalogCourse({ code, name, credits, section, instructor, schedule });
 
-        const card = document.createElement("a");
-        card.className = "courseBox";
-        card.href = `courses/course.html?code=${encodeURIComponent(code)}`;
-        card.style.textDecoration = "none";
-        card.style.color = "inherit";
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const teacherId = user.uid || "";
 
-        card.innerHTML = `
-      <div class="courseMain">
-        <div class="courseCode">${escapeHtml(code)}</div>
-        <div class="courseName">${escapeHtml(name)}</div>
-      </div>
-      <div class="courseExtra">
-        <p><strong>Credits:</strong> ${escapeHtml(credits)}</p>
-        ${section ? `<p><strong>Section:</strong> ${escapeHtml(section)}</p>` : ""}
-        ${instructor ? `<p><strong>Instructor:</strong> ${escapeHtml(instructor)}</p>` : ""}
-        ${schedule ? `<p><strong>Schedule:</strong> ${escapeHtml(schedule)}</p>` : ""}
+        const result = await addCourseToBackend({ code, name, credits, section, instructor, schedule, teacherId });
+        if (!result) {
+            alert("Failed to add course to backend");
+            return;
+        }
 
-        <div class="courseActions">
-          <button class="deleteBtn" type="button">Remove</button>
-        </div>
-      </div>
-    `;
-
-        // Insert before the wrapper (which IS a direct child of coursesContainer)
-        const refNode = activeWrapper && activeWrapper.parentElement === coursesContainer
-            ? activeWrapper
-            : coursesContainer.querySelector(".student-only, .teacher-only"); // fallback
-
-        if (refNode) coursesContainer.insertBefore(card, refNode);
-        else coursesContainer.appendChild(card);
-
+        renderCourses();
         closeModal();
-    });
+    };
 }
 
 //Delete course modal
@@ -213,21 +179,35 @@ function setupSafeDeleteModal() {
         confirmBtn.disabled = typed !== needed;
     });
 
-    confirmBtn.addEventListener("click", () => {
+    confirmBtn.addEventListener("click", async () => {
         if (!courseBoxToDelete) return;
-        // Remove from catalog
-        const updatedCatalog = getCatalog().filter(
-            c => (c.code || "").toUpperCase() !== requiredCode.toUpperCase()
-        );
-        setCatalog(updatedCatalog);
+        
+        const courseId = courseBoxToDelete.dataset.id;
+        if (!courseId) {
+            console.error("No course ID found for deletion");
+            // Fallback for hardcoded courses or legacy data
+            const updatedCatalog = (await getCatalog()).filter(
+                c => (c.code || "").toUpperCase() !== requiredCode.toUpperCase()
+            );
+            // This fallback might not work as intended without localStorage
+            courseBoxToDelete.remove();
+            closeDeleteModal();
+            return;
+        }
 
-        // Remove from enrolled list too
+        const success = await deleteCourseFromBackend(courseId);
+        if (!success) {
+            alert("Failed to delete course from backend");
+            return;
+        }
+
+        // Remove from enrolled list too (still using localStorage for now as per original code)
         const updatedEnrolled = getEnrolledCourses().filter(
             c => c.toUpperCase() !== requiredCode.toUpperCase()
         );
         setEnrolledCourses(updatedEnrolled);
 
-        courseBoxToDelete.remove();
+        renderCourses();
         window.dispatchEvent(new Event("enrollmentchange"));
         closeDeleteModal();
     });
@@ -275,17 +255,17 @@ function setEnrolledCourses(arr) {
 }
 
 function setupEnrollCourseModal() {
-    const studentEnrollBox = document.querySelector(".student-only .addCourseBox"); // the extra box in index.html :contentReference[oaicite:7]{index=7}
+    const studentEnrollBox = document.querySelector(".student-only .addCourseBox");
     const modal = document.getElementById("enrollCourseModal");
     const closeBtn = document.getElementById("closeEnrollModalBtn");
     const cancelBtn = document.getElementById("cancelEnrollBtn");
     const form = document.getElementById("enrollCourseForm");
     const select = document.getElementById("enrollSelect");
 
-    if (!studentEnrollBox || !modal || !form || !select) return;
+    if (!modal || !form || !select) return;
 
-    function openModal() {
-        const catalog = getCatalog();
+    async function openModal() {
+        const catalog = await getCatalog();
         const enrolled = new Set(getEnrolledCourses().map(c => c.toUpperCase()));
 
         // Only show courses not already enrolled
@@ -319,15 +299,15 @@ function setupEnrollCourseModal() {
         form.reset();
     }
 
-    studentEnrollBox.addEventListener("click", openModal);
-    closeBtn.addEventListener("click", closeModal);
-    cancelBtn.addEventListener("click", closeModal);
+    if (studentEnrollBox) studentEnrollBox.onclick = openModal;
+    if (closeBtn) closeBtn.onclick = closeModal;
+    if (cancelBtn) cancelBtn.onclick = closeModal;
 
-    modal.addEventListener("click", (e) => {
+    modal.onclick = (e) => {
         if (e.target === modal) closeModal();
-    });
+    };
 
-    form.addEventListener("submit", (e) => {
+    form.onsubmit = (e) => {
         e.preventDefault();
         const code = select.value;
         if (!code) return;
@@ -340,27 +320,67 @@ function setupEnrollCourseModal() {
         }
 
         closeModal();
-    });
+    };
 }
 
-function renderCourses() {
+async function renderCourses() {
     const role = getRole();
     const enrolled = new Set(getEnrolledCourses().map(c => c.toUpperCase()));
+    const catalog = await getCatalog();
+    const coursesContainer = document.querySelector(".coursesContainer");
+    if (!coursesContainer) return;
+    
+    // Clear existing dynamic courses (keep add course boxes)
+    document.querySelectorAll(".courseBox:not(.addCourseBox)").forEach(box => box.remove());
 
-    document.querySelectorAll(".courseBox").forEach(box => {
-        if (box.classList.contains("addCourseBox")) return;
-
-        const codeEl = box.querySelector(".courseCode");
-        if (!codeEl) return;
-
-        const code = codeEl.textContent.trim().toUpperCase();
-
-        if (role === "student") {
-            box.style.display = enrolled.has(code) ? "" : "none";
-        } else {
-            box.style.display = "";
+    catalog.forEach(course => {
+        const code = (course.code || "").toUpperCase();
+        
+        // Logic from original renderCourses
+        if (role === "student" && !enrolled.has(code)) {
+            return;
         }
+
+        const card = document.createElement("a");
+        card.className = "courseBox";
+        card.dataset.id = course.id;
+        card.href = `courses/course.html?code=${encodeURIComponent(course.code)}`;
+        card.style.textDecoration = "none";
+        card.style.color = "inherit";
+
+        card.innerHTML = `
+      <div class="courseMain">
+        <div class="courseCode">${escapeHtml(course.code)}</div>
+        <div class="courseName">${escapeHtml(course.name)}</div>
+      </div>
+      <div class="courseExtra">
+        <p><strong>Credits:</strong> ${escapeHtml(course.credits || "")}</p>
+        ${course.section ? `<p><strong>Section:</strong> ${escapeHtml(course.section)}</p>` : ""}
+        ${course.instructor ? `<p><strong>Instructor:</strong> ${escapeHtml(course.instructor)}</p>` : ""}
+        ${course.schedule ? `<p><strong>Schedule:</strong> ${escapeHtml(course.schedule)}</p>` : ""}
+
+        <div class="courseActions">
+          <button class="deleteBtn" type="button">Remove</button>
+        </div>
+      </div>
+    `;
+
+        // The delete button visibility is also role-dependent
+        const delBtn = card.querySelector(".deleteBtn");
+        if (delBtn) {
+            delBtn.style.display = (role === "teacher") ? "block" : "none";
+        }
+
+        // Insert before the wrapper (which IS a direct child of coursesContainer)
+        const refNode = coursesContainer.querySelector(".student-only, .teacher-only");
+        if (refNode) coursesContainer.insertBefore(card, refNode);
+        else coursesContainer.appendChild(card);
     });
+
+    // Re-attach listeners to the 'Add Course' and 'Enroll' boxes because they are within the container
+    // and might have been affected or need re-initialization if they were hidden/shown
+    setupAddCourseModal();
+    setupEnrollCourseModal();
 }
 
 window.addEventListener("rolechange", renderCourses);

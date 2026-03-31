@@ -5,6 +5,7 @@ const express = require("express");
 const cors = require("cors");
 const testRoutes = require("./routes/testRoutes");
 const authRoutes = require("./routes/authRoutes");  
+const courseRoutes = require("./routes/courseRoutes");
 const app = express();
 
 // Middleware
@@ -17,6 +18,7 @@ app.use(express.static("FrontEnd"));
 // Test route
 app.use("/api", testRoutes);
 app.use("/api/auth", authRoutes); // Use auth routes
+app.use("/api/courses", courseRoutes); // Use course routes
 
 // Port
 const PORT = process.env.PORT || 5500;
