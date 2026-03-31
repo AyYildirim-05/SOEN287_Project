@@ -26,7 +26,21 @@ exports.addCourse = async (req, res) => {
         };
 
         const docRef = await db.collection("courses").add(newCourse);
-        res.status(201).json({ id: docRef.id, ...newCourse });
+        const courseId = docRef.id;
+
+        // Add course to teacher's teachingClasses
+        if (teacherId) {
+            const teacherRef = db.collection("teachers").doc(teacherId);
+            const teacherDoc = await teacherRef.get();
+            if (teacherDoc.exists) {
+                const admin = require("firebase-admin");
+                await teacherRef.update({
+                    teachingClasses: admin.firestore.FieldValue.arrayUnion(courseId)
+                });
+            }
+        }
+
+        res.status(201).json({ id: courseId, ...newCourse });
     } catch (error) {
         console.error("Error adding course:", error);
         res.status(500).json({ message: "Internal server error." });
@@ -58,10 +72,70 @@ exports.deleteCourse = async (req, res) => {
     }
     try {
         const { id } = req.params;
-        await db.collection("courses").doc(id).delete();
+        const courseRef = db.collection("courses").doc(id);
+        const courseDoc = await courseRef.get();
+
+        if (!courseDoc.exists) {
+            return res.status(404).json({ message: "Course not found." });
+        }
+
+        const { teacherId, studentIds } = courseDoc.data();
+        const admin = require("firebase-admin");
+
+        // Remove from teacher
+        if (teacherId) {
+            await db.collection("teachers").doc(teacherId).update({
+                teachingClasses: admin.firestore.FieldValue.arrayRemove(id)
+            });
+        }
+
+        // Remove from all enrolled students
+        if (studentIds && studentIds.length > 0) {
+            const batch = db.batch();
+            studentIds.forEach(sid => {
+                const studentRef = db.collection("students").doc(sid);
+                batch.update(studentRef, {
+                    enrolledCourses: admin.firestore.FieldValue.arrayRemove(id)
+                });
+            });
+            await batch.commit();
+        }
+
+        await courseRef.delete();
         res.status(200).json({ message: "Course deleted successfully." });
     } catch (error) {
         console.error("Error deleting course:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};
+
+// Enroll a student in a course
+exports.enrollInCourse = async (req, res) => {
+    if (!db) {
+        return res.status(500).json({ message: "Database not initialized." });
+    }
+    try {
+        const { courseId, studentId } = req.body;
+
+        if (!courseId || !studentId) {
+            return res.status(400).json({ message: "Course ID and Student ID are required." });
+        }
+
+        const admin = require("firebase-admin");
+
+        // Update course
+        await db.collection("courses").doc(courseId).update({
+            studentIds: admin.firestore.FieldValue.arrayUnion(studentId)
+        });
+
+        // Update student
+        await db.collection("students").doc(studentId).update({
+            enrolledCourses: admin.firestore.FieldValue.arrayUnion(courseId)
+        });
+
+        res.status(200).json({ message: "Enrolled successfully." });
+    } catch (error) {
+        console.error("Error enrolling in course:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 };

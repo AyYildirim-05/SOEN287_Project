@@ -1,14 +1,5 @@
 //(Josh) JS for course section
 
-function initDefaultEnrollment() {
-    let enrolled = JSON.parse(localStorage.getItem("enrolledCourses")) || [];
-
-    if (enrolled.length === 0) {
-        enrolled = ["SOEN287"]; // choose your default
-        localStorage.setItem("enrolledCourses", JSON.stringify(enrolled));
-    }
-}
-
 //Loading html elements in
 async function loadHtmlIntoBody(path) {
     const res = await fetch(path);
@@ -27,7 +18,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Runs setup logic
     setupAddCourseModal();
     setupSafeDeleteModal();
-    initDefaultEnrollment();
     setupEnrollCourseModal();
     renderCourses();
 
@@ -68,6 +58,21 @@ async function deleteCourseFromBackend(id) {
         return await res.json();
     } catch (err) {
         console.error("Error deleting course:", err);
+        return null;
+    }
+}
+
+async function enrollInCourseInBackend(courseId, studentId) {
+    try {
+        const res = await fetch("/api/courses/enroll", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ courseId, studentId })
+        });
+        if (!res.ok) throw new Error(`Failed to enroll: ${res.status}`);
+        return await res.json();
+    } catch (err) {
+        console.error("Error enrolling in course:", err);
         return null;
     }
 }
@@ -116,11 +121,27 @@ function setupAddCourseModal() {
 
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const teacherId = user.uid || "";
+        const instructorName = `${user.fname || ""} ${user.lname || ""}`.trim();
 
-        const result = await addCourseToBackend({ code, name, credits, section, instructor, schedule, teacherId });
+        const result = await addCourseToBackend({ 
+            code, 
+            name, 
+            credits, 
+            section, 
+            instructor: instructorName, 
+            schedule, 
+            teacherId 
+        });
         if (!result) {
             alert("Failed to add course to backend");
             return;
+        }
+
+        // Update local user object
+        if (teacherId) {
+            if (!user.teachingClasses) user.teachingClasses = [];
+            user.teachingClasses.push(result.id);
+            localStorage.setItem("user", JSON.stringify(user));
         }
 
         renderCourses();
@@ -201,11 +222,15 @@ function setupSafeDeleteModal() {
             return;
         }
 
-        // Remove from enrolled list too (still using localStorage for now as per original code)
-        const updatedEnrolled = getEnrolledCourses().filter(
-            c => c.toUpperCase() !== requiredCode.toUpperCase()
-        );
-        setEnrolledCourses(updatedEnrolled);
+        // Update local user object
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        if (user.teachingClasses) {
+            user.teachingClasses = user.teachingClasses.filter(id => id !== courseId);
+        }
+        if (user.enrolledCourses) {
+            user.enrolledCourses = user.enrolledCourses.filter(id => id !== courseId);
+        }
+        localStorage.setItem("user", JSON.stringify(user));
 
         renderCourses();
         window.dispatchEvent(new Event("enrollmentchange"));
@@ -266,10 +291,15 @@ function setupEnrollCourseModal() {
 
     async function openModal() {
         const catalog = await getCatalog();
-        const enrolled = new Set(getEnrolledCourses().map(c => c.toUpperCase()));
+        // Since we are now storing enrollments in Firestore, we should ideally fetch the user's enrolled courses from the backend.
+        // For now, to minimize changes, we'll keep using the local comparison if needed, 
+        // but it's better to just show all courses and let the backend handle duplication if it exists.
+        
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const enrolledIds = new Set((user.enrolledCourses || []));
 
         // Only show courses not already enrolled
-        const choices = catalog.filter(c => c.code && !enrolled.has(c.code.toUpperCase()));
+        const choices = catalog.filter(c => !enrolledIds.has(c.id));
 
         select.innerHTML = "";
         if (choices.length === 0) {
@@ -284,7 +314,7 @@ function setupEnrollCourseModal() {
             select.disabled = false;
             choices.forEach(c => {
                 const opt = document.createElement("option");
-                opt.value = c.code;
+                opt.value = c.id; // Store ID as value
                 opt.textContent = `${c.code} — ${c.name || ""}`.trim();
                 select.appendChild(opt);
             });
@@ -307,25 +337,43 @@ function setupEnrollCourseModal() {
         if (e.target === modal) closeModal();
     };
 
-    form.onsubmit = (e) => {
+    form.onsubmit = async (e) => {
         e.preventDefault();
-        const code = select.value;
-        if (!code) return;
+        const courseId = select.value;
+        if (!courseId) return;
 
-        const enrolled = getEnrolledCourses();
-        if (!enrolled.includes(code)) {
-            enrolled.push(code);
-            setEnrolledCourses(enrolled);
-            window.dispatchEvent(new Event("enrollmentchange"));
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const studentId = user.uid;
+
+        if (!studentId) {
+            alert("Please log in to enroll.");
+            return;
         }
 
-        closeModal();
+        const success = await enrollInCourseInBackend(courseId, studentId);
+        if (success) {
+            // Update local user object to reflect new enrollment
+            if (!user.enrolledCourses) user.enrolledCourses = [];
+            if (!user.enrolledCourses.includes(courseId)) {
+                user.enrolledCourses.push(courseId);
+                localStorage.setItem("user", JSON.stringify(user));
+            }
+            
+            renderCourses();
+            window.dispatchEvent(new Event("enrollmentchange"));
+            closeModal();
+        } else {
+            alert("Failed to enroll.");
+        }
     };
 }
 
 async function renderCourses() {
     const role = getRole();
-    const enrolled = new Set(getEnrolledCourses().map(c => c.toUpperCase()));
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const enrolledIds = new Set(user.enrolledCourses || []);
+    const teachingIds = new Set(user.teachingClasses || []);
+    
     const catalog = await getCatalog();
     const coursesContainer = document.querySelector(".coursesContainer");
     if (!coursesContainer) return;
@@ -334,10 +382,16 @@ async function renderCourses() {
     document.querySelectorAll(".courseBox:not(.addCourseBox)").forEach(box => box.remove());
 
     catalog.forEach(course => {
-        const code = (course.code || "").toUpperCase();
+        const id = course.id;
         
-        // Logic from original renderCourses
-        if (role === "student" && !enrolled.has(code)) {
+        // Show if student is enrolled OR if teacher created it
+        if (role === "student" && !enrolledIds.has(id)) {
+            return;
+        }
+        
+        if (role === "teacher" && !teachingIds.has(id)) {
+            // Option: Show all courses to teachers, or only theirs.
+            // Based on user's request, adding created class to teacher's array implies they should see theirs.
             return;
         }
 

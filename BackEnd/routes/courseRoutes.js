@@ -11,4 +11,7 @@ router.get("/", courseController.getAllCourses);
 // Delete a course
 router.delete("/delete/:id", courseController.deleteCourse);
 
+// Enroll in a course
+router.post("/enroll", courseController.enrollInCourse);
+
 module.exports = router;
