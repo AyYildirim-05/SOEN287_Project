@@ -249,17 +249,20 @@ function setupSafeDeleteModal() {
     });
 
     document.addEventListener("click", (e) => {
-        const btn = e.target.closest(".deleteBtn");
-        if (!btn) return;
+    const btn = e.target.closest(".deleteBtn");
+    if (!btn) return;
 
-        const box = btn.closest(".courseBox");
-        if (!box || box.classList.contains("addCourseBox")) return;
+    e.preventDefault();
+    e.stopPropagation();
 
-        const codeEl = box.querySelector(".courseCode");
-        if (!codeEl) return;
+    const box = btn.closest(".courseBox");
+    if (!box || box.classList.contains("addCourseBox")) return;
 
-        openDeleteModal(box);
-    });
+    const codeEl = box.querySelector(".courseCode");
+    if (!codeEl) return;
+
+    openDeleteModal(box);
+});
 
 }
 
