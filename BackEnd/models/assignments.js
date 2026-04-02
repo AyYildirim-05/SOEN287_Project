@@ -23,4 +23,4 @@ class Assignment {
     }
 }
 
-module.exports = { assignmentSchema };
+module.exports = { Assignment };
