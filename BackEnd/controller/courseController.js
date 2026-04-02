@@ -13,17 +13,19 @@ exports.addCourse = async (req, res) => {
         }
 
         const newCourse = {
-            code: code.toUpperCase(),
-            name,
-            credits: credits || "",
-            section: section || "",
-            instructor: instructor || "",
-            schedule: schedule || "",
-            teacherId: teacherId || "",
-            studentIds: [],
-            createdAt: new Date(),
-            updatedAt: new Date()
-        };
+    code: code.toUpperCase(),
+    name,
+    credits: credits || "",
+    section: section || "",
+    instructor: instructor || "",
+    schedule: schedule || "",
+    teacherId: teacherId || "",
+    studentIds: [],
+    assignments: [],
+    announcements: [],
+    createdAt: new Date(),
+    updatedAt: new Date()
+};
 
         const docRef = await db.collection("courses").add(newCourse);
         const courseId = docRef.id;
@@ -136,6 +138,26 @@ exports.enrollInCourse = async (req, res) => {
         res.status(200).json({ message: "Enrolled successfully." });
     } catch (error) {
         console.error("Error enrolling in course:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};
+
+exports.getCourseById = async (req, res) => {
+    if (!db) {
+        return res.status(500).json({ message: "Database not initialized." });
+    }
+
+    try {
+        const { id } = req.params;
+        const doc = await db.collection("courses").doc(id).get();
+
+        if (!doc.exists) {
+            return res.status(404).json({ message: "Course not found." });
+        }
+
+        res.status(200).json({ id: doc.id, ...doc.data() });
+    } catch (error) {
+        console.error("Error getting course:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 };

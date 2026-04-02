@@ -20,7 +20,7 @@ exports.addAssignment = async (req, res) => {
 };
 
 // get assignments for a specific course
-exports.getAssignmentByCourse = async (req, res) => {
+exports.getAssignmentsByCourse = async (req, res) => {
     try {
         const { courseId } = req.params;
         const snapshot = await db.collection("assignments").where("courseId", "==", courseId).get();

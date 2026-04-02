@@ -248,6 +248,9 @@ function setupSafeDeleteModal() {
         if (e.key === "Escape" && !deleteModal.classList.contains("hidden")) closeDeleteModal();
     });
 
+    /**
+     * Clicking the remove button on course boxes
+     */
     document.addEventListener("click", (e) => {
     const btn = e.target.closest(".deleteBtn");
     if (!btn) return;

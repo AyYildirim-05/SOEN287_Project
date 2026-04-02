@@ -130,6 +130,14 @@ body {
   margin-bottom: 12px;
 }
 
+.assignmentActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+
 .addButton:hover {
   background-color: #45a049;
 }
@@ -151,6 +159,13 @@ body {
   padding: 10px;
   border-radius: 8px;
   font-size: 14px;
+}
+
+.announcementRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
 /* =====================================================
@@ -186,4 +201,19 @@ header a {
 
 header a:hover {
   text-decoration: underline;
+}
+
+.removeAssignmentBtn,
+.removeAnnouncementBtn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #dc2626;
+  color: white;
+}
+
+.removeAssignmentBtn:hover,
+.removeAnnouncementBtn:hover {
+  opacity: 0.9;
 }

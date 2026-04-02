@@ -8,6 +8,9 @@ router.post("/add", courseController.addCourse);
 // Get all courses
 router.get("/", courseController.getAllCourses);
 
+// Get one course by id
+router.get("/:id", courseController.getCourseById);
+
 // Delete a course
 router.delete("/delete/:id", courseController.deleteCourse);
 

@@ -1,38 +1,36 @@
-/* =====================================================
-   HARD-CODED COURSE DATA
-   (For Frontend Deliverable)
-   ===================================================== */
-
-const { application } = require("express");
-
-const courseData = {
-  title: "SOEN 287 - Web Programming",
-  instructor: "Abdel",
-  credits: "3 Credits",
-  tas: ["TA One", "TA Two"],
-
-  assignments: [
-    { title: "Assignment 1", due: "Feb 28, 2026", weight: "15%" },
-    { title: "Midterm Project", due: "March 15, 2026", weight: "25%" },
-    { title: "Final Report", due: "April 10, 2026", weight: "30%" }
-  ],
-
-  announcements: [
-    "Assignment 1 has been posted.",
-    "Midterm will be held in class.",
-    "Project proposal due next week."
-  ],
-
-  grades: [
-    { name: "Assignment 1", grade: 85 },
-    { name: "Midterm", grade: 78 },
-    { name: "Assignment 2", grade: 92 }
-  ]
-};
+/**
+ * Course Loading
+ */
+const params = new URLSearchParams(window.location.search);
+const courseId = params.get("id");
+let courseData = null;
 
 /* =====================================================
    SMALL HELPERS
    ===================================================== */
+
+async function loadCourseFromBackend() {
+  if (!courseId) {
+    console.error("No course ID in URL.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:3000/api/courses/${courseId}`);
+    if (!res.ok) throw new Error("Failed to load course.");
+
+    courseData = await res.json();
+
+    renderCourseInfo();
+    await fetchAndRenderAssignments();
+    renderAnnouncements();
+    renderGradeList();
+    drawGradesChart();
+
+  } catch (error) {
+    console.error("Error loading course:", error);
+  }
+}
 
 async function loadHtmlIntoBody(path) {
   const res = await fetch(path);
@@ -65,11 +63,14 @@ function loadSavedCourseInfoIntoCourseData() {
    ===================================================== */
 
 function renderCourseInfo() {
-  document.getElementById("courseTitle").textContent = courseData.title;
+  document.getElementById("courseTitle").textContent =
+    courseData.name || courseData.code || "";
+
   document.getElementById("courseInstructor").textContent =
-    "Instructor: " + courseData.instructor;
+    "Instructor: " + (courseData.instructor || "");
+
   document.getElementById("courseCredits").textContent =
-    "Credits: " + courseData.credits;
+    "Credits: " + (courseData.credits || "");
 
   const taText = (courseData.tas && courseData.tas.length > 0)
     ? courseData.tas.join(", ")
@@ -88,15 +89,15 @@ async function fetchAndRenderAssignments() {
     return;
   }
 
-  container.innerHTML = <p>Loading assignments...</p>;
+  container.innerHTML = "<p>Loading assignments...</p>";
 
-  const courseId = getCourseCodeFromUrl();
+  const courseId = new URLSearchParams(window.location.search).get("id"); //getCourseCodeFromUrl() would break
   const studentId = "TEST_STUDENT_UID";
 
   try {
     const assignRes = await fetch(`http://localhost:3000/api/assignments/course/${courseId}`);
     if (!assignRes.ok) throw new Error("Failed to fetch assignments");
-    const assignment = await assignRes.json();
+    const assignments = await assignRes.json();
 
     let completedList = [];
     try {
@@ -112,8 +113,8 @@ async function fetchAndRenderAssignments() {
     container.innerHTML = ""; // Clear loading text
 
     if (assignments.length === 0) {
-        container.innerHTML = "<p>No assignments for this course yet.</p>";
-        return;
+      container.innerHTML = "<p>No assignments for this course yet.</p>";
+      return;
     }
 
     assignments.forEach(a => {
@@ -124,17 +125,20 @@ async function fetchAndRenderAssignments() {
       box.className = "assignmentBox";
 
       box.innerHTML = `
-        <div class="assignmentText">
-          <h4>Due: ${dueDateString}</h4>
-          <h5>${a.title}</h5>
-          <p>${courseData.title}</p>
-        </div>
+    <div class="assignmentText">
+      <h4>Due: ${dueDateString}</h4>
+      <h5>${a.title}</h5>
+      <p>${courseData.name || courseData.code}</p>
+    </div>
 
-        <label>
-          Completed 
-          <input type="checkbox" class="completion-checkbox" data-id="${a.id}" ${isCompleted ? "checked" : ""}>
-        </label>
-      `;
+    <div class="assignmentActions">
+      <label>
+        Completed
+        <input type="checkbox" class="completion-checkbox" data-id="${a.id}" ${isCompleted ? "checked" : ""}>
+      </label>
+
+<button class="removeAssignmentBtn" data-id="${a.id}" type="button">Remove</button>    </div>
+    `;
 
       container.appendChild(box);
     });
@@ -146,20 +150,20 @@ async function fetchAndRenderAssignments() {
         const isChecked = e.target.checked;
 
         try {
-            const res = await fetch("http://localhost:3000/api/assignments/toggle-completion", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    studentId: studentId,
-                    assignmentId: assignmentId,
-                    isCompleted: isChecked
-                })
-            });
-            if (!res.ok) throw new Error("Database failed to update");
+          const res = await fetch("http://localhost:3000/api/assignments/toggle-completion", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              studentId: studentId,
+              assignmentId: assignmentId,
+              isCompleted: isChecked
+            })
+          });
+          if (!res.ok) throw new Error("Database failed to update");
         } catch (err) {
-            console.error(err);
-            alert("Could not update completion status on server.");
-            e.target.checked = !isChecked; // Revert the visual checkmark if DB fails
+          console.error(err);
+          alert("Could not update completion status on server.");
+          e.target.checked = !isChecked; // Revert the visual checkmark if DB fails
         }
       });
     });
@@ -179,7 +183,7 @@ function renderAnnouncements() {
 
   list.innerHTML = "";
 
-  courseData.announcements.forEach(a => {
+  (courseData.announcements || []).forEach(a => {
     const li = document.createElement("li");
     li.textContent = a;
     list.appendChild(li);
@@ -196,7 +200,9 @@ function renderGradeList() {
 
   list.innerHTML = "";
 
-  courseData.grades.forEach(g => {
+  const grades = courseData.grades || [];
+
+  grades.forEach(g => {
     const li = document.createElement("li");
     li.textContent = `${g.name}: ${g.grade}%`;
     list.appendChild(li);
@@ -224,7 +230,8 @@ function drawGradesChart() {
 
   const maxY = 100;
   const barGap = 20;
-  const barCount = courseData.grades.length;
+  const grades = courseData.grades || [];
+  const barCount = grades.length;
   const barWidth = (chartWidth - barGap * (barCount - 1)) / barCount;
 
   // axes
@@ -237,7 +244,7 @@ function drawGradesChart() {
   ctx.stroke();
 
   // bars
-  courseData.grades.forEach((g, i) => {
+  (courseData.grades || []).forEach((g, i) => {
     const barHeight = (g.grade / maxY) * chartHeight;
     const x = padding + i * (barWidth + barGap);
     const y = padding + chartHeight - barHeight;
@@ -289,7 +296,7 @@ function setupAddAssignmentModal() {
     const titleInput = document.getElementById("assignmentTitle");
     const dueDateInput = document.getElementById("assignmentDue");
 
-    if (!title || !dueDate ) {
+    if (!titleInput || !dueDateInput) {
       console.error("Error: Cannot find input IDs in the HTML.");
       return;
     }
@@ -297,9 +304,9 @@ function setupAddAssignmentModal() {
     // get Course ID from URL and Teacher ID from localStorage
     const title = titleInput.value.trim();
     const dueDate = dueDateInput.value;
-    const courseId = getCourseCodeFromUrl();
+    const courseId = new URLSearchParams(window.location.search).get("id"); //getCourseCodeFromUrl(); wouldn't work
 
-    if (!title || !dueDate ) {
+    if (!title || !dueDate) {
       alert("Please fill out both the title and due date.");
       return;
     }
@@ -345,7 +352,7 @@ function setupEditCourseInfoModal() {
   const close = () => overlay.classList.add("hidden");
 
   editBtn.addEventListener("click", () => {
-    document.getElementById("editCourseTitle").value = courseData.title;
+    document.getElementById("editCourseTitle").value = courseData.name;
     document.getElementById("editCourseInstructor").value = courseData.instructor;
     document.getElementById("editCourseCredits").value = courseData.credits;
     document.getElementById("editCourseTAs").value =
@@ -372,7 +379,7 @@ function setupEditCourseInfoModal() {
       return;
     }
 
-    courseData.title = title;
+    courseData.name = title;
     courseData.instructor = instructor;
     courseData.credits = credits;
 
@@ -381,74 +388,107 @@ function setupEditCourseInfoModal() {
     renderCourseInfo();
     close();
   });
-
-  function setupAddAnnouncementModal() {
-
-    const addBtn = document.getElementById("addAnnouncementBtn");
-    const overlay = document.getElementById("addAnnouncementOverlay");
-    const cancelBtn = document.getElementById("cancelAnnouncementBtn");
-    const closeBtn = document.getElementById("closeAnnouncementModalBtn");
-    const saveBtn = document.getElementById("saveAnnouncementBtn");
-
-    if (!addBtn || !overlay) return;
-
-    const close = () => overlay.classList.add("hidden");
-
-    addBtn.addEventListener("click", () => {
-      overlay.classList.remove("hidden");
-      document.getElementById("announcementTextInput").focus();
-    });
-
-    cancelBtn.addEventListener("click", close);
-    closeBtn.addEventListener("click", close);
-
-    overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) close();
-    });
-
-    saveBtn.addEventListener("click", () => {
-
-      const text =
-        document.getElementById("announcementTextInput").value.trim();
-
-      if (!text) {
-        alert("Please enter an announcement.");
-        return;
-      }
-
-      courseData.announcements.unshift(text);
-
-      renderAnnouncements();
-
-      document.getElementById("announcementTextInput").value = "";
-      close();
-    });
-
-  }
 }
+
+function setupAddAnnouncementModal() {
+
+  const addBtn = document.getElementById("addAnnouncementBtn");
+  const overlay = document.getElementById("addAnnouncementOverlay");
+  const cancelBtn = document.getElementById("cancelAnnouncementBtn");
+  const closeBtn = document.getElementById("closeAnnouncementModalBtn");
+  const saveBtn = document.getElementById("saveAnnouncementBtn");
+
+  if (!addBtn || !overlay) return;
+
+  const close = () => overlay.classList.add("hidden");
+
+  addBtn.addEventListener("click", () => {
+    overlay.classList.remove("hidden");
+    document.getElementById("announcementTextInput").focus();
+  });
+
+  cancelBtn.addEventListener("click", close);
+  closeBtn.addEventListener("click", close);
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+
+  saveBtn.addEventListener("click", () => {
+
+    const text =
+      document.getElementById("announcementTextInput").value.trim();
+
+    if (!text) {
+      alert("Please enter an announcement.");
+      return;
+    }
+
+    courseData.announcements.unshift(text);
+
+    renderAnnouncements();
+
+    document.getElementById("announcementTextInput").value = "";
+    close();
+  });
+
+}
+
+/*
+  Remove Buttons
+*/
+
+document.addEventListener("click", async (e) => {
+  const removeAssignmentBtn = e.target.closest(".removeAssignmentBtn");
+  if (removeAssignmentBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const assignmentId = removeAssignmentBtn.dataset.id;
+
+    try {
+      const res = await fetch(`http://localhost:3000/api/assignments/${assignmentId}`, {
+        method: "DELETE"
+      });
+
+      if (!res.ok) throw new Error("Failed to delete assignment");
+
+      await fetchAndRenderAssignments();
+    } catch (error) {
+      console.error("Error deleting assignment:", error);
+      alert("Could not delete assignment.");
+    }
+
+    return;
+  }
+
+  const removeAnnouncementBtn = e.target.closest(".removeAnnouncementBtn");
+  if (removeAnnouncementBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const index = Number(removeAnnouncementBtn.dataset.index);
+    courseData.announcements.splice(index, 1);
+    renderAnnouncements();
+  }
+});
 
 /* =====================================================
    INITIALIZE PAGE
    ===================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // 1) load saved course info (so the top card shows saved values)
-  loadSavedCourseInfoIntoCourseData();
+  await loadCourseFromBackend();
+  //await fetchAndRenderAssignments();
 
-  // 2) render the page
-  renderCourseInfo();
-  await fetchAndRenderAssignments();
   renderAnnouncements();
   renderGradeList();
   drawGradesChart();
 
-  // 3) load modal components
-  // (course.html is in /courses, so components/... is correct)
   await loadHtmlIntoBody("components/addAssignmentModal.html");
   await loadHtmlIntoBody("components/editCourseInfoModal.html");
   await loadHtmlIntoBody("components/addAnnouncementModal.html");
 
-  // 4) setup modal behaviors
   setupAddAssignmentModal();
   setupEditCourseInfoModal();
   setupAddAnnouncementModal();
