@@ -44,7 +44,7 @@ exports.getAssignmentsByCourse = async (req, res) => {
 exports.toggleCompletion = async (req, res) => {
     try {
         const { studentId, assignmentId, isCompleted} = req.body;
-        const studentRef = db.collection("student").doc(studentId);
+        const studentRef = db.collection("students").doc(studentId);
 
         if (isCompleted) {
             // add to the completed assignments array

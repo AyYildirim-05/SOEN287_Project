@@ -1,15 +1,37 @@
 // This is for grabbing assignments from backend and then displaying them.
 async function loadDashboardAssignments() {
-    const container = document.querySelector(".assignmentSection");
+    const container = document.querySelector(".assignmentsSection");
     if (!container) return;
 
     container.innerHTML = "<p>Loading assignments...</p>";
 
     try {
-        const res = await fetch("http://localhost:3000/api/assignments/all");
-        if (!res.ok) throw new Error("Failed to fetch assignments");
+        const userString = localStorage.getItem("user");
+        let studentId = null;
 
+        if (userString) {
+            const userObj = JSON.parse(userString);
+            studentId = userObj.uid;
+        }
+
+        if (!studentId) {
+            console.error("No user is logged in.");
+        return; 
+}
+
+        const res = await fetch("/api/assignments/all");
+        if (!res.ok) throw new Error("Failed to fetch assignments");
         const assignments =  await res.json();
+
+        let completedAssignments = [];
+        if (studentId) {
+            const studentRes = await fetch(`/api/student/${studentId}`);
+            if (studentRes) {
+                const studentData = await studentRes.json();
+                completedAssignments = studentData.completedAssignments || [];
+            }
+        }
+
         container.innerHTML = "";
 
         if (assignments.length === 0) {
@@ -20,6 +42,7 @@ async function loadDashboardAssignments() {
         assignments.forEach(a => {
             const dueDateString = a.dueDate ? new Date(a.dueDate).toLocaleDateString() : "No due date";
             const weightDisplay = a.weight ? `Weight: ${a.weight}` : "Weight: N/A";
+            const isChecked = completedAssignments.includes(a.id) ? "checked" : "";
 
             const box = document.createElement("div");
             box.className = "assignmentBox";
@@ -32,7 +55,7 @@ async function loadDashboardAssignments() {
                     <p>Course ID: ${a.courseId}</p>
                 </div>
                 <label>
-                    Completed <input type="checkbox" class="dashboard-checkbox" data-id="${a.id}">
+                    Completed <input type="checkbox" class="dashboard-checkbox" data-id="${a.id}" ${isChecked}>
                 </label>            
             `;
             container.appendChild(box);
@@ -42,10 +65,9 @@ async function loadDashboardAssignments() {
             checkbox.addEventListener("change", async (e) => {
                 const assignmentId = e.target.getAttribute("data-id");
                 const isChecked = e.target.checked;
-                const studentId = "TEST_STUDENT_UID";
 
                 try {
-                    await fetch("http://localhost:3000/api/assignments/toggle-completion", {
+                    await fetch("/api/assignments/toggle-completion", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
