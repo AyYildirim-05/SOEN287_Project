@@ -104,7 +104,7 @@ async function fetchAndRenderAssignments() {
       const studentRes = await fetch(`http://localhost:3000/api/students/${studentId}`);
       if (studentRes.ok) {
         const studentData = await studentRes.json();
-        completedList = studentData.completedList || [];
+        completedList = studentData.completedAssignments || [];
       }
     } catch (e) {
       console.warn("Could not fetch student completion data. Skipping checks.", e);
