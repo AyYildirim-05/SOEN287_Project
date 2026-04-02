@@ -3,6 +3,8 @@
    (For Frontend Deliverable)
    ===================================================== */
 
+const { application } = require("express");
+
 const courseData = {
   title: "SOEN 287 - Web Programming",
   instructor: "Abdel",
@@ -80,31 +82,91 @@ function renderCourseInfo() {
    ASSIGNMENTS (index-style boxes)
    ===================================================== */
 
-function renderAssignments() {
+async function fetchAndRenderAssignments() {
   const container = document.getElementById("assignmentsSection");
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
-  container.innerHTML = "";
+  container.innerHTML = <p>Loading assignments...</p>;
 
-  courseData.assignments.forEach(a => {
-    const box = document.createElement("div");
-    box.className = "assignmentBox";
+  const courseId = getCourseCodeFromUrl();
+  const studentId = "TEST_STUDENT_UID";
 
-    box.innerHTML = `
-      <div class="assignmentText">
-        <h4>${a.due}</h4>
-        <p>Weight: ${a.weight}</p>
-        <h5>${a.title}</h5>
-        <p>${courseData.title}</p>
-      </div>
+  try {
+    const assignRes = await fetch(`http://localhost:3000/api/assignments/course/${courseId}`);
+    if (!assignRes.ok) throw new Error("Failed to fetch assignments");
+    const assignment = await assignRes.json();
 
-      <label>
-        Completed <input type="checkbox">
-      </label>
-    `;
+    let completedList = [];
+    try {
+      const studentRes = await fetch(`http://localhost:3000/api/students/${studentId}`);
+      if (studentRes.ok) {
+        const studentData = await studentRes.json();
+        completedList = studentData.completedList || [];
+      }
+    } catch (e) {
+      console.warn("Could not fetch student completion data. Skipping checks.", e);
+    }
 
-    container.appendChild(box);
-  });
+    container.innerHTML = ""; // Clear loading text
+
+    if (assignments.length === 0) {
+        container.innerHTML = "<p>No assignments for this course yet.</p>";
+        return;
+    }
+
+    assignments.forEach(a => {
+      const isCompleted = completedList.includes(a.id);
+      const dueDateString = new Date(a.dueDate).toLocaleDateString();
+
+      const box = document.createElement("div");
+      box.className = "assignmentBox";
+
+      box.innerHTML = `
+        <div class="assignmentText">
+          <h4>Due: ${dueDateString}</h4>
+          <h5>${a.title}</h5>
+          <p>${courseData.title}</p>
+        </div>
+
+        <label>
+          Completed 
+          <input type="checkbox" class="completion-checkbox" data-id="${a.id}" ${isCompleted ? "checked" : ""}>
+        </label>
+      `;
+
+      container.appendChild(box);
+    });
+
+    // make checkboxes save their status for completed or uncompleted assignments to database when clicked
+    document.querySelectorAll(".completion-checkbox").forEach(checkbox => {
+      checkbox.addEventListener("change", async (e) => {
+        const assignmentId = e.target.getAttribute("data-id");
+        const isChecked = e.target.checked;
+
+        try {
+            const res = await fetch("http://localhost:3000/api/assignments/toggle-completion", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    studentId: studentId,
+                    assignmentId: assignmentId,
+                    isCompleted: isChecked
+                })
+            });
+            if (!res.ok) throw new Error("Database failed to update");
+        } catch (err) {
+            console.error(err);
+            alert("Could not update completion status on server.");
+            e.target.checked = !isChecked; // Revert the visual checkmark if DB fails
+        }
+      });
+    });
+  } catch (error) {
+    console.error("Error displaying assignments:", error);
+    container.innerHTML = "<p>Error loading assignments.</p>";
+  }
 }
 
 /* =====================================================
@@ -221,31 +283,50 @@ function setupAddAssignmentModal() {
     if (e.target === overlay) close();
   });
 
-  saveBtn.addEventListener("click", () => {
+  saveBtn.addEventListener("click", async () => {
 
-    const title = document.getElementById("editCourseTitle").value.trim();
-    const instructor = document.getElementById("editCourseInstructor").value.trim();
-    const credits = document.getElementById("editCourseCredits").value.trim();
+    // get input values using ID
+    const titleInput = document.getElementById("assignmentTitle");
+    const dueDateInput = document.getElementById("assignmentDue");
 
-    const tasRaw = document.getElementById("editCourseTAs").value.trim();
-
-    const tas = tasRaw
-      ? tasRaw.split(",").map(t => t.trim()).filter(Boolean)
-      : [];
-
-    if (!title || !instructor || !credits) {
-      alert("Please fill all fields.");
+    if (!title || !dueDate ) {
+      console.error("Error: Cannot find input IDs in the HTML.");
       return;
     }
 
-    courseData.title = title;
-    courseData.instructor = instructor;
-    courseData.credits = credits;
-    courseData.tas = tas;
+    // get Course ID from URL and Teacher ID from localStorage
+    const title = titleInput.value.trim();
+    const dueDate = dueDateInput.value;
+    const courseId = getCourseCodeFromUrl();
 
-    renderCourseInfo();
+    if (!title || !dueDate ) {
+      alert("Please fill out both the title and due date.");
+      return;
+    }
 
-    close();
+    try {
+      const response = await fetch("http://localhost:3000/api/assignments/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          courseId: courseId,
+          title: title,
+          dueDate: dueDate,
+          teacherId: "TEMPORARY_TEACHER_ID" // Replace with actual user ID later when auth is done
+        })
+      });
+
+      if (response.ok) {
+        titleInput.value = "";
+        dueDateInput.value = "";
+        close();
+        await fetchAndRenderAssignments(); // Refresh list immediately
+      } else {
+        alert("Failed to save assignment.");
+      }
+    } catch (error) {
+      console.error("Failed to save assignments: ", error);
+    }
   });
 }
 
@@ -356,7 +437,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // 2) render the page
   renderCourseInfo();
-  renderAssignments();
+  await fetchAndRenderAssignments();
   renderAnnouncements();
   renderGradeList();
   drawGradesChart();
