@@ -63,3 +63,17 @@ exports.toggleCompletion = async (req, res) => {
         res.status(500).json({message: "Internal server error."});
     }
 } 
+
+exports.getAllAssignments = async (req, res) => {
+    try {
+        const snapshot = await db.collection("assignments").get();
+        const assignments = [];
+        snapshot.forEach(doc => {
+            assignments.push({ id: doc.id, ...doc.data()});
+        });
+        res.status(200).json(assignments);
+    } catch (error) {
+        console.error("Error fetching all assignments", error);
+        res.status(500).json({ message: "Internal server error."});
+    }
+}
