@@ -12,6 +12,7 @@ class Student {
         this.gpa = data.gpa || 0.0;
         this.createdAt = data.createdAt || new Date();
         this.updatedAt = data.updatedAt || new Date();
+        this.completedAssignments = data.completedAssignments || [];
     }
 
     toFirestore() {
@@ -26,7 +27,8 @@ class Student {
             enrolledCourses: this.enrolledCourses,
             gpa: this.gpa,
             createdAt: this.createdAt,
-            updatedAt: this.updatedAt
+            updatedAt: this.updatedAt,
+            completedAssignments: this.completedAssignments
         };
     }
 }
