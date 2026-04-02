@@ -3,8 +3,6 @@
    (For Frontend Deliverable)
    ===================================================== */
 
-const { application } = require("express");
-
 const courseData = {
   title: "SOEN 287 - Web Programming",
   instructor: "Abdel",
@@ -88,7 +86,7 @@ async function fetchAndRenderAssignments() {
     return;
   }
 
-  container.innerHTML = <p>Loading assignments...</p>;
+  container.innerHTML = "<p>Loading assignments...</p>";
 
   const courseId = getCourseCodeFromUrl();
   const studentId = "TEST_STUDENT_UID";
@@ -96,14 +94,14 @@ async function fetchAndRenderAssignments() {
   try {
     const assignRes = await fetch(`http://localhost:3000/api/assignments/course/${courseId}`);
     if (!assignRes.ok) throw new Error("Failed to fetch assignments");
-    const assignment = await assignRes.json();
+    const assignments = await assignRes.json();
 
     let completedList = [];
     try {
       const studentRes = await fetch(`http://localhost:3000/api/students/${studentId}`);
       if (studentRes.ok) {
         const studentData = await studentRes.json();
-        completedList = studentData.completedList || [];
+        completedList = studentData.completedAssignments || [];
       }
     } catch (e) {
       console.warn("Could not fetch student completion data. Skipping checks.", e);
@@ -289,7 +287,7 @@ function setupAddAssignmentModal() {
     const titleInput = document.getElementById("assignmentTitle");
     const dueDateInput = document.getElementById("assignmentDue");
 
-    if (!title || !dueDate ) {
+    if (!titleInput || !dueDateInput ) {
       console.error("Error: Cannot find input IDs in the HTML.");
       return;
     }
