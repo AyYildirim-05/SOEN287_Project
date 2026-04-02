@@ -5,6 +5,9 @@ const Assignment = require("../models/assignments");
 // add new assignments
 exports.addAssignment = async (req, res) => {
     try {
+        //to confirm what dueDate looks like
+        console.log("Assignment body:", req.body);
+
         const { courseId, teacherId, title, description, dueDate } = req.body;
         
         const newAssignment = new Assignment({

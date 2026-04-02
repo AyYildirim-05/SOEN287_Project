@@ -404,7 +404,7 @@ async function renderCourses() {
         const card = document.createElement("a");
         card.className = "courseBox";
         card.dataset.id = course.id;
-        card.href = `courses/course.html?code=${encodeURIComponent(course.code)}`;
+        card.href = `courses/course.html?id=${encodeURIComponent(course.id)}`;
         card.style.textDecoration = "none";
         card.style.color = "inherit";
 

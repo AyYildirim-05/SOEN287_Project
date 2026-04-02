@@ -16,7 +16,7 @@ async function loadCourseFromBackend() {
   }
 
   try {
-    const res = await fetch(`http://localhost:3000/api/courses/${courseId}`);
+    const res = await fetch(`http://localhost:5500/api/courses/${courseId}`);
     if (!res.ok) throw new Error("Failed to load course.");
 
     courseData = await res.json();
@@ -95,13 +95,14 @@ async function fetchAndRenderAssignments() {
   const studentId = "TEST_STUDENT_UID";
 
   try {
-    const assignRes = await fetch(`http://localhost:3000/api/assignments/course/${courseId}`);
+    const assignRes = await fetch(`http://localhost:5500/api/assignments/course/${courseId}`);
     if (!assignRes.ok) throw new Error("Failed to fetch assignments");
     const assignments = await assignRes.json();
 
     let completedList = [];
+    /*
     try {
-      const studentRes = await fetch(`http://localhost:3000/api/students/${studentId}`);
+      const studentRes = await fetch(`http://localhost:5500/api/students/${studentId}`);
       if (studentRes.ok) {
         const studentData = await studentRes.json();
         completedList = studentData.completedAssignments || [];
@@ -109,6 +110,7 @@ async function fetchAndRenderAssignments() {
     } catch (e) {
       console.warn("Could not fetch student completion data. Skipping checks.", e);
     }
+      */
 
     container.innerHTML = ""; // Clear loading text
 
@@ -150,7 +152,7 @@ async function fetchAndRenderAssignments() {
         const isChecked = e.target.checked;
 
         try {
-          const res = await fetch("http://localhost:3000/api/assignments/toggle-completion", {
+          const res = await fetch("http://localhost:5500/api/assignments/toggle-completion", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -179,7 +181,7 @@ async function fetchAndRenderAssignments() {
 
 function renderAnnouncements() {
   const list = document.getElementById("announcementList");
-  if (!list) return;
+  if (!list || !courseData) return;
 
   list.innerHTML = "";
 
@@ -196,12 +198,11 @@ function renderAnnouncements() {
 
 function renderGradeList() {
   const list = document.getElementById("gradeList");
-  if (!list) return;
+  if (!list || !courseData) return;
 
   list.innerHTML = "";
 
   const grades = courseData.grades || [];
-
   grades.forEach(g => {
     const li = document.createElement("li");
     li.textContent = `${g.name}: ${g.grade}%`;
@@ -215,12 +216,11 @@ function renderGradeList() {
 
 function drawGradesChart() {
   const canvas = document.getElementById("gradesCanvas");
-  if (!canvas) return;
+  if (!canvas || !courseData) return;
 
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // background
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -232,9 +232,11 @@ function drawGradesChart() {
   const barGap = 20;
   const grades = courseData.grades || [];
   const barCount = grades.length;
+
+  if (barCount === 0) return;
+
   const barWidth = (chartWidth - barGap * (barCount - 1)) / barCount;
 
-  // axes
   ctx.lineWidth = 2;
   ctx.strokeStyle = "#cccccc";
   ctx.beginPath();
@@ -243,8 +245,7 @@ function drawGradesChart() {
   ctx.lineTo(padding + chartWidth, padding + chartHeight);
   ctx.stroke();
 
-  // bars
-  (courseData.grades || []).forEach((g, i) => {
+  grades.forEach((g, i) => {
     const barHeight = (g.grade / maxY) * chartHeight;
     const x = padding + i * (barWidth + barGap);
     const y = padding + chartHeight - barHeight;
@@ -312,7 +313,7 @@ function setupAddAssignmentModal() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/assignments/add", {
+      const response = await fetch("http://localhost:5500/api/assignments/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -447,7 +448,7 @@ document.addEventListener("click", async (e) => {
     const assignmentId = removeAssignmentBtn.dataset.id;
 
     try {
-      const res = await fetch(`http://localhost:3000/api/assignments/${assignmentId}`, {
+      const res = await fetch(`http://localhost:5500/api/assignments/${assignmentId}`, {
         method: "DELETE"
       });
 

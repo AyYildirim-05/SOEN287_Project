@@ -5,7 +5,10 @@ class Assignment {
         this.teacherId = data.teacherId; // UID of teacher who created it 
         this.title = data.title;
         this.description = data.description || " ";
-        this.dueDate = data.dueDate ? new Date(data.dueDate) : new Date();
+        
+        const parsedDueDate = data.dueDate ? new Date(data.dueDate) : new Date();
+        this.dueDate = isNaN(parsedDueDate.getTime()) ? new Date() : parsedDueDate;
+        
         this.createdAt = data.createdAt || new Date();
         this.updatedAt = data.updatedAt || new Date();
     }
@@ -23,4 +26,4 @@ class Assignment {
     }
 }
 
-module.exports = { Assignment };
+module.exports = Assignment;
