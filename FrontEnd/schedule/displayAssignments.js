@@ -17,7 +17,7 @@ async function loadDashboardAssignments() {
             return;
         }
 
-        assignments.array.forEach(a => {
+        assignments.forEach(a => {
             const dueDateString = a.dueDate ? new Date(a.dueDate).toLocaleDateString() : "No due date";
 
             const box = document.createElement("div");

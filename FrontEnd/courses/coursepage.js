@@ -122,6 +122,7 @@ async function fetchAndRenderAssignments() {
     assignments.forEach(a => {
       const isCompleted = completedList.includes(a.id);
       const dueDateString = new Date(a.dueDate).toLocaleDateString();
+      const weightDisplay = a.weight ? `Weight: ${a.weight}` : "";
 
       const box = document.createElement("div");
       box.className = "assignmentBox";
@@ -129,7 +130,7 @@ async function fetchAndRenderAssignments() {
       box.innerHTML = `
     <div class="assignmentText">
       <h4>Due: ${dueDateString}</h4>
-      <h5>${a.title}</h5>
+      <p class="weightText">${weightDisplay}</p> <h5>${a.title}</h5>
       <p>${courseData.name || courseData.code}</p>
     </div>
 
@@ -292,12 +293,12 @@ function setupAddAssignmentModal() {
   });
 
   saveBtn.addEventListener("click", async () => {
-
     // get input values using ID
     const titleInput = document.getElementById("assignmentTitle");
     const dueDateInput = document.getElementById("assignmentDue");
+    const weightInput = document.getElementById("assignmentWeight");
 
-    if (!titleInput || !dueDateInput) {
+    if (!titleInput || !dueDateInput || !weightInput) {
       console.error("Error: Cannot find input IDs in the HTML.");
       return;
     }
@@ -305,6 +306,7 @@ function setupAddAssignmentModal() {
     // get Course ID from URL and Teacher ID from localStorage
     const title = titleInput.value.trim();
     const dueDate = dueDateInput.value;
+    const weight = weightInput.value.trim();
     const courseId = new URLSearchParams(window.location.search).get("id"); //getCourseCodeFromUrl(); wouldn't work
 
     if (!title || !dueDate) {
@@ -320,6 +322,7 @@ function setupAddAssignmentModal() {
           courseId: courseId,
           title: title,
           dueDate: dueDate,
+          weight: weight,
           teacherId: "TEMPORARY_TEACHER_ID" // Replace with actual user ID later when auth is done
         })
       });
@@ -327,6 +330,7 @@ function setupAddAssignmentModal() {
       if (response.ok) {
         titleInput.value = "";
         dueDateInput.value = "";
+        weightInput.value = "";
         close();
         await fetchAndRenderAssignments(); // Refresh list immediately
       } else {

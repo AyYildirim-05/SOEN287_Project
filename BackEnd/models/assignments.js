@@ -4,6 +4,7 @@ class Assignment {
         this.courseId = data.courseId; // document id
         this.teacherId = data.teacherId; // UID of teacher who created it 
         this.title = data.title;
+        this.weight = data.weight || "";
         this.description = data.description || " ";
         
         const parsedDueDate = data.dueDate ? new Date(data.dueDate) : new Date();
@@ -18,6 +19,7 @@ class Assignment {
             courseId: this.courseId,
             teacherId: this.teacherId,
             title: this.title,
+            weight: this.weight,
             description: this.description,
             dueDate: this.dueDate,
             createdAt: this.createdAt,

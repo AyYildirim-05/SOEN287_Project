@@ -8,10 +8,10 @@ exports.addAssignment = async (req, res) => {
         //to confirm what dueDate looks like
         console.log("Assignment body:", req.body);
 
-        const { courseId, teacherId, title, description, dueDate } = req.body;
+        const { courseId, teacherId, title, weight, description, dueDate } = req.body;
         
         const newAssignment = new Assignment({
-            courseId, teacherId, title, description, dueDate
+            courseId, teacherId, title, weight, description, dueDate
         }).toFirestore();
 
         const docRef = await db.collection("assignments").add(newAssignment);
