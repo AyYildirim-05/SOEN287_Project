@@ -11,6 +11,9 @@ router.get("/", courseController.getAllCourses);
 // Get one course by id
 router.get("/:id", courseController.getCourseById);
 
+// Get people in a course
+router.get("/:id/people", courseController.getPeopleInCourse);
+
 // Delete a course
 router.delete("/delete/:id", courseController.deleteCourse);
 

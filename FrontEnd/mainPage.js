@@ -28,7 +28,7 @@ function toggleProfileMenu() {
                 break;
 
             case "admin":
-                console.log(`Admin ID: ${userData.adminID}`);
+                console.log(`Admin UID: ${userData.uid}`);
                 window.location.href = `${basePath}settings/admin_settings.html`;
                 break; 
 

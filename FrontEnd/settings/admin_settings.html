@@ -1,1 +1,117 @@
-<!-- Admin Settings this html file will display admin-specific options -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Settings</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="../Images/concordia_logo.png">
+        </div>
+        <nav>
+            <a href="../index.html" class="backLink">← Dashboard</a>
+        </nav>
+        <div class="account">
+            <div class="profile">
+                <img src="../Images/profile_icon.png" onclick="toggleProfileMenu()">
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <h2>Admin Settings</h2>
+
+        <div class="admin-grid">
+            <!-- Section 1: Create Course -->
+            <div class="admin-section">
+                <h3>Create New Course</h3>
+                <form id="createCourseForm">
+                    <div class="form-group">
+                        <label for="courseCode">Course Code (e.g., SOEN287)</label>
+                        <input type="text" id="courseCode" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseName">Course Name</label>
+                        <input type="text" id="courseName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseDescription">Description</label>
+                        <input type="text" id="courseDescription">
+                    </div>
+                    <div class="form-group">
+
+                        <label for="courseTeacher">Assign Teacher</label>
+                        <select id="courseTeacher" required>
+                            <option value="">Select a Teacher</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">Create Course</button>
+                </form>
+            </div>
+
+            <!-- Section 2: Create Major -->
+            <div class="admin-section">
+                <h3>Create New Major</h3>
+                <form id="createMajorForm">
+                    <div class="form-group">
+                        <label for="majorName">Major Name</label>
+                        <input type="text" id="majorName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="majorDescription">Description</label>
+                        <input type="text" id="majorDescription">
+                    </div>
+                    <button type="submit" class="btn">Create Major</button>
+                </form>
+            </div>
+
+            <!-- Section 3: View People -->
+            <div class="admin-section">
+                <h3>View Students and Teachers</h3>
+                <div class="form-group">
+                    <label for="viewBy">View By:</label>
+                    <select id="viewBy">
+                        <option value="course">Course</option>
+                        <option value="major">Major</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="viewItem">Select Item:</label>
+                    <select id="viewItem">
+                        <option value="">Select a Course</option>
+                    </select>
+                </div>
+                
+                <div id="peopleList" class="list-container">
+                    <h4>Results:</h4>
+                    <div id="teacherResult">
+                        <strong>Teacher:</strong> <span id="teacherName">N/A</span>
+                    </div>
+                    <h5>Students:</h5>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>ID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentsListBody">
+                                <tr>
+                                    <td colspan="2">Select an item</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../mainPage.js"></script>
+    <script src="admin_settings.js"></script>
+</body>
+</html>

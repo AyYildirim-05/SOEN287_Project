@@ -7,6 +7,8 @@ const testRoutes = require("./routes/testRoutes");
 const authRoutes = require("./routes/authRoutes");  
 const courseRoutes = require("./routes/courseRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const teacherRoutes = require("./routes/teacherRoutes");
+const majorRoutes = require("./routes/majorRoutes");
 const assignmentRoutes = require("./routes/assignmentRoutes");
 const app = express();
 
@@ -23,6 +25,8 @@ app.use("/api/auth", authRoutes); // Use auth routes
 app.use("/api/courses", courseRoutes); // Use course routes
 app.use("/api/assignments", assignmentRoutes); // Use assignment routes
 app.use("/api/student", studentRoutes);
+app.use("/api/teacher", teacherRoutes);
+app.use("/api/major", majorRoutes);
 
 // Port
 const PORT = process.env.PORT || 5500;

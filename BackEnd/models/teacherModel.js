@@ -6,7 +6,7 @@ class Teacher {
         this.fname = data.fname;
         this.lname = data.lname;
         this.role = "teacher";
-        this.teacherID = data.teacherID || data.teachertID || ""; // Fixed typo from teachertID
+        this.teacherID = data.teacherID || data.teachertID || "";
         this.major = data.major || "";
         this.teachingClasses = data.teachingClasses || [];
         this.createdAt = data.createdAt || new Date();

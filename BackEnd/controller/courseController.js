@@ -6,16 +6,18 @@ exports.addCourse = async (req, res) => {
         return res.status(500).json({ message: "Database not initialized." });
     }
     try {
-        const { code, name, credits, section, instructor, schedule, teacherId } = req.body;
+        const { code, name, description, credits, section, instructor, schedule, teacherId } = req.body;
 
         if (!code || !name) {
             return res.status(400).json({ message: "Course code and name are required." });
         }
 
         const newCourse = {
-    code: code.toUpperCase(),
-    name,
-    credits: credits || "",
+            code: code.toUpperCase(),
+            name,
+            description: description || "",
+            credits: credits || "",
+
     section: section || "",
     instructor: instructor || "",
     schedule: schedule || "",
@@ -158,6 +160,41 @@ exports.getCourseById = async (req, res) => {
         res.status(200).json({ id: doc.id, ...doc.data() });
     } catch (error) {
         console.error("Error getting course:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};
+
+// Get students and teacher for a specific course
+exports.getPeopleInCourse = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const courseDoc = await db.collection("courses").doc(id).get();
+
+        if (!courseDoc.exists) {
+            return res.status(404).json({ message: "Course not found." });
+        }
+
+        const courseData = courseDoc.data();
+        const studentIds = courseData.studentIds || [];
+        const teacherId = courseData.teacherId;
+
+        const students = [];
+        if (studentIds.length > 0) {
+            const studentSnapshots = await db.collection("students").where("uid", "in", studentIds.slice(0, 30)).get();
+            studentSnapshots.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+        }
+
+        let teacher = null;
+        if (teacherId) {
+            const teacherDoc = await db.collection("teachers").doc(teacherId).get();
+            if (teacherDoc.exists) {
+                teacher = { id: teacherDoc.id, ...teacherDoc.data() };
+            }
+        }
+
+        res.status(200).json({ students, teacher });
+    } catch (error) {
+        console.error("Error getting people in course:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 };
