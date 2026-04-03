@@ -24,11 +24,31 @@ exports.addAssignment = async (req, res) => {
 
 // helper function to safely parse dates 
 const formatTimestamp = (field) => {
-    if (field && typeof field.toDate === 'function') {
+    if (!field) return null;
+
+    // 1. If it's a standard Firebase Timestamp class
+    if (typeof field.toDate === 'function') {
         return field.toDate().toISOString();
     }
-    return field;
-} 
+
+    // 2. If Firebase returned a raw object (stripped of prototype)
+    if (field._seconds !== undefined) {
+        return new Date(field._seconds * 1000).toISOString();
+    }
+    
+    // 3. If it's already a JS Date object
+    if (field instanceof Date) {
+        return field.toISOString();
+    }
+
+    // 4. If it was saved as a plain string (e.g., "Mar 30, 2026")
+    const parsedDate = new Date(field);
+    if (!isNaN(parsedDate.getTime())) {
+        return parsedDate.toISOString();
+    }
+
+    return field; // Fallback
+}
 
 // get assignments for a specific course
 exports.getAssignmentsByCourse = async (req, res) => {
@@ -38,6 +58,8 @@ exports.getAssignmentsByCourse = async (req, res) => {
 
         const assignments = [];
         snapshot.forEach(doc => {
+            const data = doc.data();
+            
             assignments.push({ 
                 id: doc.id,
                 ...data,
@@ -84,6 +106,8 @@ exports.getAllAssignments = async (req, res) => {
         const snapshot = await db.collection("assignments").get();
         const assignments = [];
         snapshot.forEach(doc => {
+            const data = doc.data();
+            
             assignments.push({ 
                 id: doc.id, 
                 ...data,
