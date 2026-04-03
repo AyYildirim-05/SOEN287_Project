@@ -1,19 +1,31 @@
 document.addEventListener("DOMContentLoaded", () => {
     const signupForm = document.querySelector('form[action="signup"]');
 
+    function generateID() {
+        return Math.floor(1000000 + Math.random() * 9000000).toString();
+    }
+
     if (signupForm) {
         signupForm.addEventListener("submit", async (e) => {
             e.preventDefault();
-            
+
+            const role = document.querySelector('input[name="role"]:checked').value;
+            const generatedID = generateID();
+
             const formData = {
                 fname: document.getElementById("name").value,
                 lname: document.getElementById("lastName").value,
                 email: document.getElementById("email").value,
                 password: document.getElementById("password").value,
-                role: document.querySelector('input[name="role"]:checked').value,
-                studentID: null,
-                major: null
+                role: role,
+                major: document.getElementById("major").value
             };
+
+            if (role === "student") {
+                formData.studentID = generatedID;
+            } else if (role === "teacher") {
+                formData.teacherID = generatedID;
+            }
 
             try {
                 const response = await fetch("/api/auth/signup", {

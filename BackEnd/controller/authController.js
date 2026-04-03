@@ -4,13 +4,29 @@ const Teacher = require("../models/teacherModel");
 const Admin = require("../models/adminSchema");
 
 async function signUpController(req, res) {
-    const { email, password, fname, lname, role, studentID, major, teacherID } = req.body;
+    const { email, password, fname, lname, role, major, studentID, teacherID } = req.body;
     
     // Basic validation
     if (!email || !password || !fname || !lname || !role) {
         return res.status(400).json({ message: "All fields are required (email, password, fname, lname, role)" });
     }
-   
+
+    if (role !== "admin" && !major) {
+        return res.status(400).json({ message: "Major is required for students and teachers" });
+    }
+
+    if (role === "student" && !studentID) {
+        return res.status(400).json({ message: "Student ID is required" });
+    }
+
+    if (role === "teacher" && !teacherID) {
+        return res.status(400).json({ message: "Teacher ID is required" });
+    }
+
+    if (!email.includes("@") || !email.includes(".")) {
+        return res.status(400).json({ message: "Invalid email format" });
+    }
+
     try {
         // Create user in Firebase Auth
         const userRecord = await auth.createUser({

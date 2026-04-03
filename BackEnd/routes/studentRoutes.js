@@ -12,7 +12,7 @@ const {
     studentUpdateController,
     studentDeleteController,
     studentGetByIdController
-} = require("../controller/studentController");
+} = require("../controller/studentController.js");
 
 router.get("/getstudent", verifyToken, studentGetController);
 router.get("/getallstudents", verifyToken,studentGetAllController);
