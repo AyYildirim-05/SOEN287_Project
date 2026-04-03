@@ -6,5 +6,6 @@ router.post("/add", assignmentController.addAssignment);
 router.get("/course/:courseId", assignmentController.getAssignmentsByCourse);
 router.post("/toggle-completion", assignmentController.toggleCompletion);
 router.get("/all", assignmentController.getAllAssignments);
+router.delete("/:id", assignmentController.deleteAssignment);
 
 module.exports = router;
