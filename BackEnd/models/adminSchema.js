@@ -1,4 +1,3 @@
-
 class Admin {
     constructor(data) {
         this.uid = data.uid;

@@ -1,8 +1,12 @@
 function toggleProfileMenu() {
     const userDataString = localStorage.getItem("user");
+    
+    // Determine the base path based on whether we are in a subdirectory (like /courses/)
+    const isInSubdir = window.location.pathname.includes('/courses/') || window.location.pathname.includes('/schedule/') || window.location.pathname.includes('/Auths/') || window.location.pathname.includes('/settings/');
+    const basePath = isInSubdir ? "../" : "";
 
     if (!userDataString) {
-        window.location.href = "Auths/sign_in.html"; 
+        window.location.href = `${basePath}Auths/sign_in.html`; 
         return; 
     }
 
@@ -15,17 +19,17 @@ function toggleProfileMenu() {
         switch (role) {
             case "student":
                 console.log(`Student ID: ${userData.studentID}`);
-                window.location.href = "settings/student_settings.html"; 
+                window.location.href = `${basePath}settings/student_settings.html`; // path format for the settings page
                 break;
 
             case "teacher":
                 console.log(`Teacher ID: ${userData.teacherID}`);
-                window.location.href = "settings/teacher_settings.html"; 
+                window.location.href = `${basePath}settings/teacher_settings.html`; 
                 break;
 
             case "admin":
                 console.log(`Admin ID: ${userData.adminID}`);
-                window.location.href = "settings/admin_settings.html";
+                window.location.href = `${basePath}settings/admin_settings.html`;
                 break; 
 
             default:

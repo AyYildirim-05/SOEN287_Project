@@ -92,7 +92,14 @@ async function fetchAndRenderAssignments() {
   container.innerHTML = "<p>Loading assignments...</p>";
 
   const courseId = new URLSearchParams(window.location.search).get("id"); //getCourseCodeFromUrl() would break
-  const studentId = "TEST_STUDENT_UID";
+  
+  // Get actual user ID from localStorage
+  const userDataString = localStorage.getItem("user");
+  let studentId = "TEST_STUDENT_UID"; // Fallback
+  if (userDataString) {
+    const userData = JSON.parse(userDataString);
+    studentId = userData.uid || userData._id || studentId;
+  }
 
   try {
     const assignRes = await fetch(`http://localhost:5500/api/assignments/course/${courseId}`);
@@ -309,6 +316,14 @@ function setupAddAssignmentModal() {
     const weight = weightInput.value.trim();
     const courseId = new URLSearchParams(window.location.search).get("id"); //getCourseCodeFromUrl(); wouldn't work
 
+    // Get actual teacher ID from localStorage
+    const userDataString = localStorage.getItem("user");
+    let teacherId = "TEMPORARY_TEACHER_ID"; // Fallback
+    if (userDataString) {
+      const userData = JSON.parse(userDataString);
+      teacherId = userData.uid || userData._id || teacherId;
+    }
+
     if (!title || !dueDate) {
       alert("Please fill out both the title and due date.");
       return;
@@ -323,7 +338,7 @@ function setupAddAssignmentModal() {
           title: title,
           dueDate: dueDate,
           weight: weight,
-          teacherId: "TEMPORARY_TEACHER_ID" // Replace with actual user ID later when auth is done
+          teacherId: teacherId
         })
       });
 

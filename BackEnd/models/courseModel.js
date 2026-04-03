@@ -1,15 +1,29 @@
-
-
-const courseSchema = {
-    uid: String,            // From Firebase Auth
-    classId: String,      // e.g., "40123456"
-    major: String,          // e.g., "Software Engineering"
-    courseName: String,     // e.g., "SOEN 287"
-    teacherId: String,      // Document ID of the teacher in 'teachers' collection
-    studentIds: Array,     // Array of document IDs of students enrolled in this course
-    createdAt: Date,
-    updatedAt: Date,
-    assignments: Array,     // Array of assignment objects { title: String, description: String, dueDate: Date }
-};
+class Course {
+    constructor(data) {
+        this.uid = data.uid;
+        this.classId = data.classId;
+        this.major = data.major;
+        this.courseName = data.courseName;
+        this.teacherId = data.teacherId;
+        this.studentIds = data.studentIds || [];
+        this.createdAt = data.createdAt || new Date();
+        this.updatedAt = data.updatedAt || new Date();
+        this.assignments = data.assignments || [];
+    }
+    
+    toFirestore() {
+        return {
+            uid: this.uid,
+            classId: this.classId,
+            major: this.major,
+            courseName: this.courseName,
+            teacherId: this.teacherId,
+            studentIds: this.studentIds,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+            assignments: this.assignments
+        };
+    }
+}
 
 module.exports = { courseSchema };

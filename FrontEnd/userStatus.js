@@ -40,10 +40,19 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         userNameSpan.appendChild(roleBadge); // Add badge next to name
-        accountSection.insertBefore(userNameSpan, profileIcon);
-        accountSection.insertBefore(logoutBtn, profileIcon);
+        if (accountSection && profileIcon) {
+            accountSection.insertBefore(userNameSpan, profileIcon);
+            accountSection.insertBefore(logoutBtn, profileIcon);
+        }
 
         // Ensure role UI is applied for current user
         window.dispatchEvent(new Event("rolechange"));
+    }
+});
+
+// Interconnect across tabs: if the user logs in/out in another tab, reload this one.
+window.addEventListener("storage", (event) => {
+    if (event.key === "user" || event.key === "token" || event.key === "role") {
+        window.location.reload();
     }
 });
