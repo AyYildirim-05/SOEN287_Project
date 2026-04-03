@@ -1,6 +1,7 @@
 // This is for grabbing assignments from backend and then displaying them.
 async function loadDashboardAssignments() {
     const container = document.querySelector(".assignmentsSection");
+    const archiveContainer = document.querySelector(".archiveSection");
     if (!container) return;
 
     container.innerHTML = "<p>Loading assignments...</p>";
@@ -8,22 +9,23 @@ async function loadDashboardAssignments() {
     try {
         const userString = localStorage.getItem("user");
         let studentId = null;
+        let completedAssignments = [];
 
         if (userString) {
             const userObj = JSON.parse(userString);
             studentId = userObj.uid;
+            completedAssignments = userObj.completedAssignments || [];
         }
 
         if (!studentId) {
             console.error("No user is logged in.");
-        return; 
-}
+            return; 
+        }
 
         const res = await fetch("/api/assignments/all");
         if (!res.ok) throw new Error("Failed to fetch assignments");
         const assignments =  await res.json();
-
-        let completedAssignments = [];
+        
         if (studentId) {
             const studentRes = await fetch(`/api/student/${studentId}`);
             if (studentRes.ok) {
@@ -60,7 +62,12 @@ async function loadDashboardAssignments() {
                     Completed <input type="checkbox" class="dashboard-checkbox" data-id="${a.id}" ${isChecked}>
                 </label>            
             `;
-            container.appendChild(box);
+
+            if (completedAssignments.includes(a.id) && archiveContainer) {
+                archiveContainer.appendChild(box);
+            } else {
+                container.appendChild(box);
+            }
         });
 
         document.querySelectorAll(".dashboard-checkbox").forEach(checkbox => {
@@ -78,6 +85,20 @@ async function loadDashboardAssignments() {
                             isCompleted: isChecked
                         })
                     });
+
+                    if (userString) {
+                        const currentUser = JSON.parse(localStorage.getItem("user"));
+                        if (!currentUser.completedAssignments) currentUser.completedAssignments = [];
+
+                        if (isChecked) {
+                            if (!currentUser.completedAssignments.includes(assignmentId)) {
+                                currentUser.completedAssignments.push(assignmentId);
+                            }
+                        } else {
+                            currentUser.completedAssignments = currentUser.completedAssignments.filter( id => id !== assignmentId);
+                        }
+                        localStorage.setItem("user", JSON.stringify(currentUser));
+                    }
                 } catch (err) {
                     console.error("Could not update status", err);
                     e.target.checked = !isChecked; // Revert checkmark if it fails
