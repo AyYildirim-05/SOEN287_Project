@@ -26,9 +26,11 @@ async function loadDashboardAssignments() {
         let completedAssignments = [];
         if (studentId) {
             const studentRes = await fetch(`/api/student/${studentId}`);
-            if (studentRes) {
+            if (studentRes.ok) {
                 const studentData = await studentRes.json();
                 completedAssignments = studentData.completedAssignments || [];
+            } else {
+                console.warn(`Failed to fetch student data: ${studentRes.status}`);
             }
         }
 

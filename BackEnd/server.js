@@ -6,6 +6,7 @@ const cors = require("cors");
 const testRoutes = require("./routes/testRoutes");
 const authRoutes = require("./routes/authRoutes");  
 const courseRoutes = require("./routes/courseRoutes");
+const studentRoutes = require("./routes/studentRoutes");
 const assignmentRoutes = require("./routes/assignmentRoutes");
 const app = express();
 
@@ -21,6 +22,7 @@ app.use("/api", testRoutes);
 app.use("/api/auth", authRoutes); // Use auth routes
 app.use("/api/courses", courseRoutes); // Use course routes
 app.use("/api/assignments", assignmentRoutes); // Use assignment routes
+app.use("/api/student", studentRoutes);
 
 // Port
 const PORT = process.env.PORT || 5500;
