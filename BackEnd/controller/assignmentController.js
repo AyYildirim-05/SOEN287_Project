@@ -122,3 +122,25 @@ exports.getAllAssignments = async (req, res) => {
         res.status(500).json({ message: "Internal server error."});
     }
 }
+
+// delete an assignment
+exports.deleteAssignment = async (req, res) => {
+    try {
+        const {id} = req.params;
+
+        const docRef = db.collection("assignments").doc(id);
+        const doc = await docRef.get();
+
+        if (!doc.exists) {
+            return res.status(404).json({message: "Assignment not found."});
+        }
+
+        // delete the document from firebase
+        await docRef.delete();
+
+        res.status(200).json({message: "Assignment deleted successfully."});
+    } catch (error) {
+        console.error("Error deleting assignment:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+}
