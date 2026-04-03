@@ -128,7 +128,9 @@ async function fetchAndRenderAssignments() {
 
     assignments.forEach(a => {
       const isCompleted = completedList.includes(a.id);
-      const dueDateString = new Date(a.dueDate).toLocaleDateString();
+      const dueDateString = a.dueDate 
+      ? new Date(a.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+      : "No due date";
       const weightDisplay = a.weight ? `Weight: ${a.weight}` : "";
 
       const box = document.createElement("div");

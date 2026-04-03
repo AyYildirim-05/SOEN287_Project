@@ -44,7 +44,9 @@ async function loadDashboardAssignments() {
         }
 
         assignments.forEach(a => {
-            const dueDateString = a.dueDate ? new Date(a.dueDate).toLocaleDateString() : "No due date";
+            const dueDateString = a.dueDate 
+            ? new Date(a.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) 
+            : "No due date";
             const weightDisplay = a.weight ? `Weight: ${a.weight}` : "Weight: N/A";
             const isChecked = completedAssignments.includes(a.id) ? "checked" : "";
 

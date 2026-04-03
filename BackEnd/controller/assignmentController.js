@@ -22,6 +22,14 @@ exports.addAssignment = async (req, res) => {
     }
 };
 
+// helper function to safely parse dates 
+const formatTimestamp = (field) => {
+    if (field && typeof field.toDate === 'function') {
+        return field.toDate().toISOString();
+    }
+    return field;
+} 
+
 // get assignments for a specific course
 exports.getAssignmentsByCourse = async (req, res) => {
     try {
@@ -30,7 +38,13 @@ exports.getAssignmentsByCourse = async (req, res) => {
 
         const assignments = [];
         snapshot.forEach(doc => {
-            assignments.push({ id: doc.id, ...doc.data()});
+            assignments.push({ 
+                id: doc.id,
+                ...data,
+                dueDate: formatTimestamp(data.dueDate),
+                createdAt: formatTimestamp(data.createdAt),
+                updatedAt: formatTimestamp(data.updatedAt)
+            });
         });
 
         res.status(200).json(assignments);
@@ -64,12 +78,19 @@ exports.toggleCompletion = async (req, res) => {
     }
 } 
 
+// get all assignments
 exports.getAllAssignments = async (req, res) => {
     try {
         const snapshot = await db.collection("assignments").get();
         const assignments = [];
         snapshot.forEach(doc => {
-            assignments.push({ id: doc.id, ...doc.data()});
+            assignments.push({ 
+                id: doc.id, 
+                ...data,
+                dueDate: formatTimestamp(data.dueDate),
+                createdAt: formatTimestamp(data.createdAt),
+                updatedAt: formatTimestamp(data.updatedAt)
+            });
         });
         res.status(200).json(assignments);
     } catch (error) {
