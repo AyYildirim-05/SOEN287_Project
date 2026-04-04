@@ -21,14 +21,6 @@ const gradesGraph = new Chart("gradesChart", {
     }
 })*/
 
-/**
- * gradesGraph.js
- * Fetches the logged-in student's enrolled courses (with assignment
- * completion stats) from the backend and renders a Chart.js bar chart.
- *
- * Replaces the old hardcoded version.
- * Depends on: Chart.js (already imported in index.html)
- */
 
 (async function initGradesGraph() {
     const canvas = document.getElementById("gradesChart");
@@ -42,7 +34,7 @@ const gradesGraph = new Chart("gradesChart", {
     ctx.textAlign = "center";
     ctx.fillText("Loading grades…", canvas.width / 2, canvas.height / 2);
 
-    // ── 1. Auth check ────────────────────────────────────────────────
+    // Authentication
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
 
@@ -63,7 +55,7 @@ const gradesGraph = new Chart("gradesChart", {
         return;
     }
 
-    // ── 2. Fetch data from backend ───────────────────────────────────
+    // Getting courses of the current user
     let courses = [];
     try {
         const res = await fetch("/api/grades/my-courses", {
@@ -80,7 +72,7 @@ const gradesGraph = new Chart("gradesChart", {
         return;
     }
 
-    // ── 3. Handle empty state ────────────────────────────────────────
+    // If empty
     if (!courses.length) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#aaa";
@@ -90,11 +82,11 @@ const gradesGraph = new Chart("gradesChart", {
         return;
     }
 
-    // ── 4. Build chart data ──────────────────────────────────────────
+    // Building chart
     const labels = courses.map(c => c.code);
     const data   = courses.map(c => c.completionPercent);
 
-    // Color bars: green ≥ 80, yellow ≥ 50, red < 50
+    // Color bars: More than 80 = green , More than 50 = yellow, Less than 50 = red
     const backgroundColors = data.map(v =>
         v >= 80 ? "rgba(74, 222, 128, 0.75)"  // green
       : v >= 50 ? "rgba(251, 191, 36, 0.75)"  // yellow
@@ -102,12 +94,12 @@ const gradesGraph = new Chart("gradesChart", {
     );
     const borderColors = backgroundColors.map(c => c.replace("0.75", "1"));
 
-    // ── 5. Destroy any existing chart instance before re-rendering ───
+    // Refreshing the chart 
     if (window._gradesChartInstance) {
         window._gradesChartInstance.destroy();
     }
 
-    // ── 6. Render Chart.js bar chart ─────────────────────────────────
+    //Loading the chart with Chart.js
     window._gradesChartInstance = new Chart(canvas, {
         type: "bar",
         data: {
@@ -128,7 +120,7 @@ const gradesGraph = new Chart("gradesChart", {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        // Richer tooltip showing completed / total
+                        // Tooltip when hovering over a bar: show completion % and count of completed/total assignments
                         label: (ctx) => {
                             const course = courses[ctx.dataIndex];
                             return [
@@ -157,8 +149,7 @@ const gradesGraph = new Chart("gradesChart", {
         }
     });
 
-    // ── 7. Refresh whenever the student toggles a completion checkbox ─
-    //      (dispatched by archiveAssignments.js / displayAssignments.js)
+    // 7. Refresh whenever the student toggles a completion checkbox
     document.addEventListener("assignmentStatusChanged", async () => {
         // Re-fetch fresh data and update chart in-place
         try {

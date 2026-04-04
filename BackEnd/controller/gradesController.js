@@ -19,7 +19,7 @@ exports.getStudentCoursesForGraph = async (req, res) => {
         }
 
         // 2. Fetch each course document
-        // Firestore "in" queries support up to 30 items; slice to be safe
+        // Firestore "in" queries support up to 30 items, so we join them together in case we have more than 30
         const courseChunks = [];
         for (let i = 0; i < enrolledCourseIds.length; i += 30) {
             courseChunks.push(enrolledCourseIds.slice(i, i + 30));
@@ -35,7 +35,7 @@ exports.getStudentCoursesForGraph = async (req, res) => {
             });
         }
 
-        // 3. For each course, fetch its assignments to calculate grade stats
+        // For each course, fetch its assignments to calculate grade stats
         const result = [];
         for (const course of courses) {
             const assignmentsSnapshot = await db.collection("assignments")
