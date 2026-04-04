@@ -12,6 +12,7 @@ class Assignment {
         
         this.createdAt = data.createdAt || new Date();
         this.updatedAt = data.updatedAt || new Date();
+        this.grades = data.grades || {};
     }
 
     toFirestore() {
@@ -23,7 +24,8 @@ class Assignment {
             description: this.description,
             dueDate: this.dueDate,
             createdAt: this.createdAt,
-            updatedAt: this.updatedAt
+            updatedAt: this.updatedAt,
+            grades: this.grades
         };
     }
 }

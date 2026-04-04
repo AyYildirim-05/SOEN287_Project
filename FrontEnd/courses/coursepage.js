@@ -136,12 +136,14 @@ async function fetchAndRenderAssignments() {
       const box = document.createElement("div");
       box.className = "assignmentBox";
 
-      box.innerHTML = `
+      /*box.innerHTML = `
     <div class="assignmentText">
       <h4>Due: ${dueDateString}</h4>
       <p class="weightText">${weightDisplay}</p> <h5>${a.title}</h5>
       <p>${courseData.name || courseData.code}</p>
     </div>
+
+    
 
     <div class="assignmentActions">
       <label>
@@ -150,8 +152,40 @@ async function fetchAndRenderAssignments() {
       </label>
 
 <button class="removeAssignmentBtn" data-id="${a.id}" type="button">Remove</button>    </div>
-    `;
+    `;*/
 
+      box.innerHTML = `
+  <div class="assignmentText">
+    <h4>Due: ${dueDateString}</h4>
+    <p class="weightText">${weightDisplay}</p>
+    <h5>${a.title}</h5>
+    <p>${courseData.name || courseData.code}</p>
+  </div>
+ 
+  <div class="assignmentActions">
+    <label>
+      Completed
+      <input type="checkbox" class="completion-checkbox" data-id="${a.id}" ${isCompleted ? "checked" : ""}>
+    </label>
+ 
+    <div class="student-only">
+      <span class="gradeDisplay" id="gradeDisplay-${a.id}">
+        ${a.grades && a.grades[studentId] !== undefined ? "Grade: " + a.grades[studentId] + "%" : "No grade yet"}
+      </span>
+      <button
+        class="enterGradeBtn"
+        type="button"
+        data-id="${a.id}"
+        data-title="${a.title.replace(/"/g, '&quot;')}"
+        data-current="${a.grades && a.grades[studentId] !== undefined ? a.grades[studentId] : ''}"
+      >
+        Enter Grade
+      </button>
+    </div>
+ 
+    <button class="removeAssignmentBtn teacher-only" data-id="${a.id}" type="button">Remove</button>
+  </div>
+`;
       container.appendChild(box);
     });
 
@@ -495,6 +529,82 @@ document.addEventListener("click", async (e) => {
   }
 });
 
+// SET UP COURSE MODAL
+function setupGradeModal() {
+  const overlay    = document.getElementById("gradeModalOverlay");
+  const closeBtn   = document.getElementById("closeGradeModalBtn");
+  const cancelBtn  = document.getElementById("cancelGradeBtn");
+  const saveBtn    = document.getElementById("saveGradeBtn");
+  const scoreInput = document.getElementById("gradeScoreInput");
+  const titleEl    = document.getElementById("gradeModalAssignmentTitle");
+ 
+  if (!overlay) return;
+ 
+  let activeAssignmentId = null;
+ 
+  const close = () => {
+    overlay.classList.add("hidden");
+    scoreInput.value = "";
+    activeAssignmentId = null;
+  };
+ 
+  closeBtn.addEventListener("click", close);
+  cancelBtn.addEventListener("click", close);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+ 
+  // Open modal when any "Enter Grade" button is clicked
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".enterGradeBtn");
+    if (!btn) return;
+ 
+    activeAssignmentId = btn.dataset.id;
+    titleEl.textContent = btn.dataset.title;
+    scoreInput.value = btn.dataset.current; // pre-fill if grade already exists
+    overlay.classList.remove("hidden");
+    scoreInput.focus();
+  });
+ 
+  saveBtn.addEventListener("click", async () => {
+    const score = Number(scoreInput.value);
+ 
+    if (scoreInput.value === "" || isNaN(score) || score < 0 || score > 100) {
+      alert("Please enter a score between 0 and 100.");
+      return;
+    }
+ 
+    const token = localStorage.getItem("token");
+ 
+    try {
+      const res = await fetch("http://localhost:5500/api/assignments/grade", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          assignmentId: activeAssignmentId,
+          score
+        })
+      });
+ 
+      if (!res.ok) throw new Error("Failed to save grade.");
+ 
+      // Update the grade display on the card without a full re-render
+      const gradeDisplay = document.getElementById(`gradeDisplay-${activeAssignmentId}`);
+      if (gradeDisplay) gradeDisplay.textContent = `Grade: ${score}%`;
+ 
+      // Update the data-current attribute so re-opening shows the new value
+      const btn = document.querySelector(`.enterGradeBtn[data-id="${activeAssignmentId}"]`);
+      if (btn) btn.dataset.current = score;
+ 
+      close();
+    } catch (err) {
+      console.error("Error saving grade:", err);
+      alert("Could not save grade. Please try again.");
+    }
+  });
+}
+
 /* =====================================================
    INITIALIZE PAGE
    ===================================================== */
@@ -514,4 +624,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupAddAssignmentModal();
   setupEditCourseInfoModal();
   setupAddAnnouncementModal();
+  setupGradeModal();
 });

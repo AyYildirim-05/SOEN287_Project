@@ -142,6 +142,31 @@ body {
   background-color: #45a049;
 }
 
+/* ====================================================
+   Assignment Grade Buttons
+   ==================================================== */
+
+.enterGradeBtn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #0077cc;
+  color: white;
+  font-size: 13px;
+}
+ 
+.enterGradeBtn:hover {
+  background: #005fa3;
+}
+ 
+.gradeDisplay {
+  font-size: 13px;
+  color: #444;
+  margin-bottom: 4px;
+  display: block;
+}
+
 /* =====================================================
    ANNOUNCEMENTS
    ===================================================== */

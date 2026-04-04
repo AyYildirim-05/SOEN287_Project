@@ -10,6 +10,7 @@ const studentRoutes = require("./routes/studentRoutes");
 const teacherRoutes = require("./routes/teacherRoutes");
 const majorRoutes = require("./routes/majorRoutes");
 const assignmentRoutes = require("./routes/assignmentRoutes");
+const gradesRoute = require("./routes/gradesRoute");
 const app = express();
 
 // Middleware
@@ -27,6 +28,7 @@ app.use("/api/assignments", assignmentRoutes); // Use assignment routes
 app.use("/api/student", studentRoutes);
 app.use("/api/teacher", teacherRoutes);
 app.use("/api/major", majorRoutes);
+app.use("/api/grades", gradesRoute);
 
 // Port
 const PORT = process.env.PORT || 5500;

@@ -87,6 +87,27 @@
 
   </div>
 
+  <!-- Grade Input Modal (student-only) -->
+  <div id="gradeModalOverlay" class="modalOverlay hidden">
+    <div class="modal">
+      <div class="modalHeader">
+        <h2 style="margin:0;">Enter Your Grade</h2>
+        <button id="closeGradeModalBtn" class="iconBtn" type="button">✕</button>
+      </div>
+      <div class="modalBody">
+        <p id="gradeModalAssignmentTitle" style="margin:0 0 8px; font-weight:600;"></p>
+        <label>
+          Your Score (0 – 100)
+          <input id="gradeScoreInput" type="number" min="0" max="100" placeholder="e.g. 88">
+        </label>
+        <div class="modalFooter">
+          <button id="cancelGradeBtn" class="btnSecondary" type="button">Cancel</button>
+          <button id="saveGradeBtn" class="btnPrimary" type="button">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="coursepage.js"></script>
   <script src="roleToggle.js"></script>
   <script src="../mainPage.js"></script>

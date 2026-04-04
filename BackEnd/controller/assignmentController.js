@@ -144,3 +144,37 @@ exports.deleteAssignment = async (req, res) => {
         res.status(500).json({ message: "Internal server error." });
     }
 }
+
+// Students updating their grades
+exports.gradeAssignment = async (req, res) => {
+    try {
+        const studentId = req.user.uid; // comes from verifyToken middleware
+        const { assignmentId, score } = req.body;
+ 
+        if (!assignmentId || score === undefined) {
+            return res.status(400).json({ message: "assignmentId and score are required." });
+        }
+ 
+        if (score < 0 || score > 100) {
+            return res.status(400).json({ message: "Score must be between 0 and 100." });
+        }
+ 
+        const assignmentRef = db.collection("assignments").doc(assignmentId);
+        const assignmentDoc = await assignmentRef.get();
+ 
+        if (!assignmentDoc.exists) {
+            return res.status(404).json({ message: "Assignment not found." });
+        }
+ 
+        // Writes only this student's entry into the grades map.
+        // Other students' grades are untouched.
+        await assignmentRef.update({
+            [`grades.${studentId}`]: score
+        });
+ 
+        res.status(200).json({ message: "Grade saved successfully." });
+    } catch (error) {
+        console.error("Error saving grade:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};
