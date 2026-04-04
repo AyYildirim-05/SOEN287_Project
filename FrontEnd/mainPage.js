@@ -1,13 +1,17 @@
 function toggleProfileMenu() {
     const userDataString = localStorage.getItem("user");
-    
-    // Determine the base path based on whether we are in a subdirectory (like /courses/)
-    const isInSubdir = window.location.pathname.includes('/courses/') || window.location.pathname.includes('/schedule/') || window.location.pathname.includes('/Auths/') || window.location.pathname.includes('/settings/');
+
+    const isInSubdir =
+        window.location.pathname.includes("/courses/") ||
+        window.location.pathname.includes("/schedule/") ||
+        window.location.pathname.includes("/Auths/") ||
+        window.location.pathname.includes("/settings/");
+
     const basePath = isInSubdir ? "../" : "";
 
     if (!userDataString) {
-        window.location.href = `${basePath}Auths/sign_in.html`; 
-        return; 
+        window.location.href = `${basePath}Auths/sign_in.html`;
+        return;
     }
 
     try {
@@ -18,20 +22,16 @@ function toggleProfileMenu() {
 
         switch (role) {
             case "student":
-                console.log(`Student ID: ${userData.studentID}`);
-                window.location.href = `${basePath}settings/student_settings.html`; // path format for the settings page
+                window.location.href = `${basePath}settings/student_settings.html`;
                 break;
-
             case "teacher":
-                console.log(`Teacher ID: ${userData.teacherID}`);
-                window.location.href = `${basePath}settings/teacher_settings.html`; 
+                window.location.href = `${basePath}settings/teacher_settings.html`;
                 break;
 
             case "admin":
                 console.log(`Admin UID: ${userData.uid}`);
                 window.location.href = `${basePath}settings/admin_settings.html`;
-                break; 
-
+                break;
             default:
                 console.warn("User role not recognized:", role);
                 alert("Account error: Role not assigned.");
@@ -39,7 +39,7 @@ function toggleProfileMenu() {
 
     } catch (error) {
         console.error("Error parsing user data:", error);
-        localStorage.removeItem("user"); // Clear corrupted data
+        localStorage.removeItem("user");
     }
 }
 
@@ -51,22 +51,41 @@ window.addEventListener("pageshow", (event) => {
         return;
     }
 
-    // 2. Check the Navigation Timing API for back_forward type
     const navEntries = performance.getEntriesByType("navigation");
-    if (navEntries.length > 0) {
-        const navType = navEntries[0].type;
-        if (navType === "back_forward") {
-            window.location.reload();
-        }
+    if (navEntries.length > 0 && navEntries[0].type === "back_forward") {
+        window.location.reload();
     }
 });
 
-// Force reload on Dashboard link click
-document.addEventListener("DOMContentLoaded", () => {
+function setupBackLinks() {
     const backLinks = document.querySelectorAll(".backLink");
-    backLinks.forEach(link => {
-        link.addEventListener("click", function() {
+
+    backLinks.forEach((link) => {
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
             window.location.href = "../index.html";
         });
     });
+}
+
+function setupCourseSearch() {
+    const searchBar = document.getElementById("searchBar");
+    if (!searchBar) return;
+
+    searchBar.addEventListener("input", () => {
+        const searchValue = searchBar.value.trim().toLowerCase();
+        const courseBoxes = document.querySelectorAll(".courseBox");
+
+        courseBoxes.forEach((box) => {
+            if (box.classList.contains("addCourseBox")) return;
+
+            const text = box.textContent.toLowerCase();
+            box.style.display = text.includes(searchValue) ? "" : "none";
+        });
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    setupBackLinks();
+    setupCourseSearch();
 });
