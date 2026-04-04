@@ -1,4 +1,4 @@
-const { db } = require("../database/firebase");
+const { db, auth } = require("../database/firebase");
 const Student = require("../models/studentSchema");
 
 // Get the currently authenticated student
@@ -65,8 +65,23 @@ exports.studentCreateController = async (req, res) => {
 exports.studentUpdateController = async (req, res) => {
     try {
         const uid = req.user.uid;
-        const updateData = req.body;
+        const updateData = { ...req.body };
         
+        // Handle password update separately via Firebase Auth
+        if (updateData.password) {
+            await auth.updateUser(uid, { password: updateData.password });
+            delete updateData.password; // Don't store plaintext password in Firestore
+        }
+
+        // Update name in Firebase Auth if provided
+        if (updateData.fname || updateData.lname) {
+            const currentDoc = await db.collection("students").doc(uid).get();
+            const currentData = currentDoc.data();
+            const fname = updateData.fname || currentData.fname;
+            const lname = updateData.lname || currentData.lname;
+            await auth.updateUser(uid, { displayName: `${fname} ${lname}` });
+        }
+
         // Update the timestamp
         updateData.updatedAt = new Date();
 

@@ -36,31 +36,70 @@
 
     <!-- Fields user -->
     <div class="container">
-      <h2>Student Settings</h2>
-      <form id="form-group">
+      <h2>Teacher Settings</h2>
+      
+      <!-- General Profile Summary (Read-only) -->
+      <div id="profile-summary" class="profile-summary">
+        <h3>General Profile</h3>
+        <div id="profile-details-grid">
+          <div class="summary-item">
+            <strong>Full Name</strong>
+            <span id="summary-name">Loading...</span>
+          </div>
+          <div class="summary-item">
+            <strong>Teacher ID</strong>
+            <span id="summary-id">Loading...</span>
+          </div>
+          <div class="summary-item">
+            <strong>Major</strong>
+            <span id="summary-major">Loading...</span>
+          </div>
+          <div class="summary-item">
+            <strong>Email Address</strong>
+            <span id="summary-email">Loading...</span>
+          </div>
+        </div>
+      </div>
 
-        <label for="fname">First Name:</label>
-        <input type="text" id="fname" name="fname">
+      <hr>
 
-        <label for="lname">Last Name:</label>
-        <input type="text" id="lname" name="lname" >
+      <h3>Update Information</h3>
+      <p><small>Leave fields empty if you do not want to change them.</small></p>
+      
+      <form id="settings-form">
+        <div class="form-group">
+          <label for="fname">First Name</label>
+          <input type="text" id="fname" name="fname" placeholder="Enter new first name">
+        </div>
 
-        <label for="major">Major:</label>
-        <input type="text" id="major" name="major" >
+        <div class="form-group">
+          <label for="lname">Last Name</label>
+          <input type="text" id="lname" name="lname" placeholder="Enter new last name">
+        </div>
 
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" >
+        <div class="form-group">
+          <label for="major">Major</label>
+          <select id="major" name="major">
+            <option value="">Select a new major</option>
+            <!-- Majors will be populated by JS -->
+          </select>
+        </div>
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" >
+        <div class="form-group">
+          <label for="password">New Password</label>
+          <input type="password" id="password" name="password" placeholder="Min 6 characters to update">
+        </div>
 
-        <button class="submit-btn" type="submit">Save Changes</button>
+        <div class="form-group-full">
+          <button class="submit-btn" type="submit">Update Profile</button>
+        </div>
       </form>
     </div>
 
 
   <script src="../mainPage.js"></script>
   <script src="../userStatus.js"></script>
+  <script src="settings_handler.js"></script>
 </body>
 
 </html>

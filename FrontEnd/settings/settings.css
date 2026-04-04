@@ -1,34 +1,33 @@
 .admin-container {
     background: white;
-    padding: 20px 40px;
-    width: 90%;
+    padding: 30px 40px;
+    width: 95%;
     max-width: 1200px;
     margin: 40px auto;
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
 }
 
 .container {
     background: white;
     padding: 40px;
-    width: 300px;
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-
-    /* Positioning magic */
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 800px; /* Increased from 300px to feel more open */
+    margin: 50px auto; /* Changed from absolute positioning to centered margin */
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    position: relative; /* Removed absolute centering */
 }
 
 h2 {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    font-size: 2rem;
+    color: #91022d;
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 label {
@@ -123,4 +122,86 @@ input:focus {
 }
 .list-container {
     margin-top: 20px;
+}
+
+/* Student/Teacher Settings Enhancements */
+.profile-summary {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #e1e4e8;
+    margin-bottom: 40px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.profile-summary h3 {
+    margin-top: 0;
+    color: #91022d;
+    font-size: 1.5rem;
+    border-bottom: 2px solid #f1f1f1;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+}
+
+#profile-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.summary-item {
+    margin: 0;
+    padding: 10px;
+    background: #fdfdfd;
+    border-radius: 8px;
+}
+
+.summary-item strong {
+    display: block;
+    width: auto;
+    color: #888;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.summary-item span {
+    font-size: 1.1rem;
+    color: #222;
+    font-weight: 500;
+}
+
+#settings-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+}
+
+#settings-form .form-group-full {
+    grid-column: span 2;
+}
+
+.container hr {
+    margin: 40px 0;
+    border: 0;
+    border-top: 2px solid #f1f1f1;
+}
+
+#settings-form input {
+    margin-bottom: 15px;
+}
+
+#settings-form .submit-btn {
+    background-color: #91022d;
+}
+
+#settings-form .submit-btn:hover {
+    background-color: #700122;
+}
+
+small {
+    color: #666;
+    display: block;
+    margin-bottom: 15px;
 }
