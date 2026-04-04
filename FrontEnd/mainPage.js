@@ -43,15 +43,21 @@ function toggleProfileMenu() {
     }
 }
 
-//  reload page
+// Force reload when navigating back/forward to ensure data is fresh
 window.addEventListener("pageshow", (event) => {
-    const navEntries = performance.getEntriesByType("navigation");
-    const isBackForward = event.persisted || 
-                         (navEntries.length > 0 && navEntries[0].type === "back_forward") ||
-                         (window.performance && window.performance.navigation.type === 2);
-    
-    if (isBackForward) {
+    // 1. Check if the page was restored from the BFCache (Back-Forward Cache)
+    if (event.persisted) {
         window.location.reload();
+        return;
+    }
+
+    // 2. Check the Navigation Timing API for back_forward type
+    const navEntries = performance.getEntriesByType("navigation");
+    if (navEntries.length > 0) {
+        const navType = navEntries[0].type;
+        if (navType === "back_forward") {
+            window.location.reload();
+        }
     }
 });
 
