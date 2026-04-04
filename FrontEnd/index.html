@@ -83,15 +83,12 @@
                     <div class="scheduleContainer">
                         <!-- For sorting feature for schedule-->
                         <div class="sortSection">
-                            <button id="sortScheduleButton">Sort</button>
+                            <label> Sort by:</label>
 
                             <div class="sortOptions">
-                                <label>
-                                    By Date <input type="radio" id="sortDate" value="Date" name="sortOption">
-                                </label>
-                                <label>
-                                    By Class <input type="radio" id="sortClasses" value="By Class" name="sortOption">
-                                </label>
+                                <input type="radio" name="sortType" value="date" checked> Date
+                                <input type="radio" name="sortType" value="course"> Course
+                                <input type="radio" name="sortType" value="weight"> Weight
                             </div>
                         </div>
 
@@ -175,8 +172,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0"></script> <!-- This is to importat Chart.js -->
     <script src="Graph\gradesGraph.js"></script> <!-- This is the script for the grades graph -->
 
-    <script src="schedule/archiveAssignments.js"></script> <!-- This is for the display of the archived assignments -->>
+    <script src="schedule/archiveAssignments.js"></script> <!-- This is for the display of the archived assignments -->
     <script src="schedule/displayAssignments.js"></script> <!-- This is to display the assignments from the database -->
+    <script src="schedule/sortAssignments.js"></script> 
 </body>
 
 </html>

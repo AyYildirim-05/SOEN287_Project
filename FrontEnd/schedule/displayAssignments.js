@@ -140,13 +140,19 @@ async function loadDashboardAssignments() {
                     e.target.checked = !isChecked; // Revert checkmark if it fails
                 }
             })
-        })
+        });
+
+        if (typeof sortAssignmentBoxes === "function") {
+            const checkedRadio = document.querySelector('input[type="radio"][name="sortType"]:checked');
+            const initialSort = checkedRadio ? checkedRadio.value : 'date';
+            sortAssignmentBoxes(initialSort);
+        }
     } catch (error) {
         console.error("Error loading dashboard assingments: ", error);
         container.innerHTML = "<p>Error loading assignments.</p>";
     }
 }
 
-document.addEventListener("DOMContentLoaded", loadDashboardAssignments)
+document.addEventListener("DOMContentLoaded", loadDashboardAssignments);
 
 
