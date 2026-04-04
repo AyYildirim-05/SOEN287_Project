@@ -84,28 +84,31 @@ const gradesGraph = new Chart("gradesChart", {
 
     // Building chart
     const labels = courses.map(c => c.code);
-    const data   = courses.map(c => c.completionPercent);
 
-    // Color bars: More than 80 = green , More than 50 = yellow, Less than 50 = red
-    const backgroundColors = data.map(v =>
-        v >= 80 ? "rgba(74, 222, 128, 0.75)"  // green
-      : v >= 50 ? "rgba(251, 191, 36, 0.75)"  // yellow
-      :           "rgba(248, 113, 113, 0.75)"  // red
-    );
+    // Use courseGrade if available, otherwise 0 for the bar height
+    const data = courses.map(c => c.courseGrade ?? 0);
+
+    // Color bars: grey = no grades yet, green >= 80, yellow >= 60, red < 60
+    const backgroundColors = courses.map(c => {
+        if (c.courseGrade === null)  return "rgba(200, 200, 200, 0.75)"; // grey = no grades yet
+        if (c.courseGrade >= 80)    return "rgba(74, 222, 128, 0.75)";  // green
+        if (c.courseGrade >= 60)    return "rgba(251, 191, 36, 0.75)";  // yellow
+        return "rgba(248, 113, 113, 0.75)";                              // red
+    });
     const borderColors = backgroundColors.map(c => c.replace("0.75", "1"));
 
-    // Refreshing the chart 
+    // Refreshing the chart
     if (window._gradesChartInstance) {
         window._gradesChartInstance.destroy();
     }
 
-    //Loading the chart with Chart.js
+    // Loading the chart with Chart.js
     window._gradesChartInstance = new Chart(canvas, {
         type: "bar",
         data: {
             labels,
             datasets: [{
-                label: "Assignment Completion (%)",
+                label: "Course Grade (%)",
                 data,
                 backgroundColor: backgroundColors,
                 borderColor: borderColors,
@@ -120,12 +123,15 @@ const gradesGraph = new Chart("gradesChart", {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        // Tooltip when hovering over a bar: show completion % and count of completed/total assignments
+                        // Tooltip when hovering over a bar
                         label: (ctx) => {
                             const course = courses[ctx.dataIndex];
+                            if (course.courseGrade === null) {
+                                return " No grades entered yet";
+                            }
                             return [
-                                ` Completion: ${course.completionPercent}%`,
-                                ` Done: ${course.completedCount} / ${course.totalAssignments} assignments`
+                                ` Grade: ${course.courseGrade}%`,
+                                ` Total assignments: ${course.totalAssignments}`
                             ];
                         }
                     }
@@ -149,9 +155,8 @@ const gradesGraph = new Chart("gradesChart", {
         }
     });
 
-    // 7. Refresh whenever the student toggles a completion checkbox
+    // Refresh whenever the student enters a grade
     document.addEventListener("assignmentStatusChanged", async () => {
-        // Re-fetch fresh data and update chart in-place
         try {
             const freshRes = await fetch("/api/grades/my-courses", {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
@@ -161,14 +166,21 @@ const gradesGraph = new Chart("gradesChart", {
 
             window._gradesChartInstance.data.labels = freshCourses.map(c => c.code);
             window._gradesChartInstance.data.datasets[0].data =
-                freshCourses.map(c => c.completionPercent);
+                freshCourses.map(c => c.courseGrade ?? 0);
+            window._gradesChartInstance.data.datasets[0].backgroundColor =
+                freshCourses.map(c => {
+                    if (c.courseGrade === null) return "rgba(200, 200, 200, 0.75)";
+                    if (c.courseGrade >= 80)   return "rgba(74, 222, 128, 0.75)";
+                    if (c.courseGrade >= 60)   return "rgba(251, 191, 36, 0.75)";
+                    return "rgba(248, 113, 113, 0.75)";
+                });
             window._gradesChartInstance.update();
 
             // Refresh tooltip source array too
             courses.length = 0;
             freshCourses.forEach(c => courses.push(c));
         } catch (e) {
-            console.warn("gradesGraph: could not refresh after status change", e);
+            console.warn("gradesGraph: could not refresh after grade change", e);
         }
     });
 })();
