@@ -8,32 +8,49 @@ async function loadDashboardAssignments() {
 
     try {
         const userString = localStorage.getItem("user");
-        let studentId = null;
+        let userId = null;
+        let userRole = null;
         let completedAssignments = [];
 
         if (userString) {
             const userObj = JSON.parse(userString);
-            studentId = userObj.uid;
+            userId = userObj.uid;
+            userRole = userObj.role;
             completedAssignments = userObj.completedAssignments || [];
         }
 
-        if (!studentId) {
+        if (!userId) {
             console.error("No user is logged in.");
             return; 
         }
 
         const res = await fetch("/api/assignments/all");
         if (!res.ok) throw new Error("Failed to fetch assignments");
-        const assignments =  await res.json();
+        let assignments =  await res.json();
+
+        let relaventCourses = [];
         
-        if (studentId) {
-            const studentRes = await fetch(`/api/student/${studentId}`);
+        if (userRole === "student") {
+            const studentRes = await fetch(`/api/student/${userId}`);
             if (studentRes.ok) {
                 const studentData = await studentRes.json();
                 completedAssignments = studentData.completedAssignments || [];
+                relevantCourses = studentData.enrolledCourses || studentData.courses || [];
             } else {
                 console.warn(`Failed to fetch student data: ${studentRes.status}`);
             }
+        } else if (user === "teacher") {
+            const teacherRes = await fetch(`/api/teacher/${userId}`);
+            if (teacherRes.ok) {
+                const teacherData = await teacherRes.json();
+                relevantCourses = teacherData.teachingClasses || [];
+            } else {
+                console.warn(`Failed to fetch teacher data: ${teacherRes.status}`);
+            }
+        }
+
+        if (userRole != "admin") {
+            assignments = assignments.filter(a => relaventCourses.includes(a.courseId));
         }
 
         container.innerHTML = "";
