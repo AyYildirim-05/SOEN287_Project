@@ -155,4 +155,6 @@ async function loadDashboardAssignments() {
 
 document.addEventListener("DOMContentLoaded", loadDashboardAssignments);
 
+window.addEventListener("enrollmentchange", loadDashboardAssignments);
+
 
