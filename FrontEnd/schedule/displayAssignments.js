@@ -12,6 +12,20 @@ async function loadDashboardAssignments() {
         let userRole = null;
         let completedAssignments = [];
 
+        // Fetch all courses to create a courseId
+        let courseMap = {};
+        try {
+            const coursesRes = await fetch("/api/courses");
+            if (coursesRes.ok) {
+                const allCourses = await coursesRes.json();
+                allCourses.forEach(course => {
+                    courseMap[course.id] = course.code;
+                });
+            } 
+        } catch (err) {
+            console.warn("Could not fetch courses to map course codes.", err);
+        }
+
         if (userString) {
             const userObj = JSON.parse(userString);
             userId = userObj.uid;
@@ -64,6 +78,9 @@ async function loadDashboardAssignments() {
             const dueDateString = a.dueDate 
             ? new Date(a.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) 
             : "No due date";
+
+            const courseDisplayCode = courseMap[a.courseId] ? courseMap[a.courseId] : a.courseId;
+
             const weightDisplay = a.weight ? `Weight: ${a.weight}` : "Weight: N/A";
             const isChecked = completedAssignments.includes(a.id) ? "checked" : "";
 
@@ -75,7 +92,7 @@ async function loadDashboardAssignments() {
                     <h4>Due: ${dueDateString}</h4>
                     <p class="weightText">${weightDisplay}</p> 
                     <h5>${a.title}</h5>
-                    <p>Course ID: ${a.courseId}</p>
+                    <p>Course: ${courseDisplayCode}</p>
                 </div>
                 <label>
                     Completed <input type="checkbox" class="dashboard-checkbox" data-id="${a.id}" ${isChecked}>
