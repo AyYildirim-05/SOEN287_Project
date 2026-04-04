@@ -42,3 +42,28 @@ function toggleProfileMenu() {
         localStorage.removeItem("user"); // Clear corrupted data
     }
 }
+
+//  reload page
+window.addEventListener("pageshow", (event) => {
+    const navEntries = performance.getEntriesByType("navigation");
+    const isBackForward = event.persisted || 
+                         (navEntries.length > 0 && navEntries[0].type === "back_forward") ||
+                         (window.performance && window.performance.navigation.type === 2);
+    
+    if (isBackForward) {
+        window.location.reload();
+    }
+});
+
+// Force reload on Dashboard link click
+document.addEventListener("DOMContentLoaded", () => {
+    const backLinks = document.querySelectorAll(".backLink");
+    backLinks.forEach(link => {
+        link.addEventListener("click", function(e) {
+            e.preventDefault();
+            // Append a timestamp to the URL to force a fresh fetch from the server
+            const targetUrl = this.href.split('?')[0];
+            window.location.href = targetUrl + "?refresh=" + new Date().getTime();
+        });
+    });
+});
