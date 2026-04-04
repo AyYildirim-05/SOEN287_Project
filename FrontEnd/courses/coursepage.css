@@ -2,44 +2,47 @@
    COURSE PAGE - OVERRIDE GLOBAL styles.css
    ===================================================== */
 
-/* Cancel global body flex behavior */
+/* Reset page layout from global stylesheet */
 body {
   height: auto;
   display: block;
 }
 
 /* =====================================================
-   MAIN GRID LAYOUT
+   PAGE LAYOUT
    ===================================================== */
 
 .homePage {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
   padding: 30px;
+}
 
-  align-items: start;
-  align-content: start;
+.homePageLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+}
+
+.courseTopRow {
+  margin-bottom: 30px;
 }
 
 /* =====================================================
-   TOP FULL-WIDTH COURSE INFO
+   MAIN CARDS
    ===================================================== */
 
-.courseTopRow {
-  grid-column: 1 / -1;
+.courseInfoCard,
+.classesDisplay,
+.schedule,
+.gradesGraph {
+  border-radius: 14px;
 }
 
 .courseInfoCard {
   padding: 24px;
-  border-radius: 14px;
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: #f1f5f9;
 }
-
-/* =====================================================
-   THREE MAIN COLUMNS
-   ===================================================== */
 
 .classesDisplay,
 .schedule,
@@ -47,60 +50,105 @@ body {
   display: flex;
   flex-direction: column;
   padding: 20px;
-  border-radius: 14px;
-
-  min-height: 75vh; /* balanced card height */
+  min-width: 0;
 }
 
-/* Column colors */
-.classesDisplay { background: #fef3c7; }
-.schedule       { background: #dcfce7; }
-.gradesGraph    { background: #e0f2fe; }
+.classesDisplay {
+  background: #fef3c7;
+}
+
+.schedule {
+  background: #dcfce7;
+}
+
+.gradesGraph {
+  background: #e0f2fe;
+}
 
 /* =====================================================
-   INNER WHITE BOXES
+   INNER CONTENT BOXES
    ===================================================== */
 
-.coursesWrapper,
 .scheduleDisplay,
 .graphContainer {
   background: white;
   border-radius: 12px;
   padding: 20px;
   margin-top: 15px;
-
   flex: 1;
   overflow-y: auto;
-
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* =====================================================
-   ASSIGNMENT CARDS
+   SHARED BUTTONS
    ===================================================== */
 
+.addButton {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.addButton:hover {
+  background-color: #45a049;
+}
+
+.removeAssignmentBtn,
+.removeAnnouncementBtn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #dc2626;
+  color: white;
+}
+
+.removeAssignmentBtn:hover,
+.removeAnnouncementBtn:hover {
+  opacity: 0.9;
+}
+
+.enterGradeBtn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #0077cc;
+  color: white;
+  font-size: 13px;
+}
+
+.enterGradeBtn:hover {
+  background: #005fa3;
+}
+
 /* =====================================================
-   ASSIGNMENTS (match index.html layout)
+   ASSIGNMENTS
    ===================================================== */
 
 .assignmentsSection {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  width: 100%;
   margin-bottom: 15px;
+  padding: 16px;
   background-color: #f7f7f7;
   border-radius: 8px;
-  padding: 16px;
-  width: 100%;
 }
 
 .assignmentBox {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  padding: 15px;
   border: 1px solid black;
   border-radius: 7px;
-  padding: 15px;
 }
 
 .assignmentText {
@@ -114,32 +162,11 @@ body {
   margin: 2px 0;
 }
 
-.hidden { display: none; }
-
-#assignmentDescription {
-  min-height: 80px;
-  resize: vertical;
-}
-
 .assignmentDescription {
   margin-top: 6px;
   color: #444;
   line-height: 1.4;
   white-space: pre-wrap;
-}
-
-/* ====================================================
-   Assignment Buttons
-   ==================================================== */
-
-.addButton {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-bottom: 12px;
 }
 
 .assignmentActions {
@@ -149,34 +176,16 @@ body {
   align-items: flex-end;
 }
 
-
-.addButton:hover {
-  background-color: #45a049;
-}
-
-/* ====================================================
-   Assignment Grade Buttons
-   ==================================================== */
-
-.enterGradeBtn {
-  padding: 6px 10px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  background: #0077cc;
-  color: white;
-  font-size: 13px;
-}
- 
-.enterGradeBtn:hover {
-  background: #005fa3;
-}
- 
 .gradeDisplay {
+  display: block;
+  margin-bottom: 4px;
   font-size: 13px;
   color: #444;
-  margin-bottom: 4px;
-  display: block;
+}
+
+#assignmentDescription {
+  min-height: 80px;
+  resize: vertical;
 }
 
 /* =====================================================
@@ -196,13 +205,6 @@ body {
   padding: 10px;
   border-radius: 8px;
   font-size: 14px;
-}
-
-.announcementRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
 }
 
 .announcementCard {
@@ -229,21 +231,12 @@ body {
   gap: 8px;
 }
 
-.editAnnouncementBtn,
-.removeAnnouncementBtn {
+.editAnnouncementBtn {
   padding: 6px 10px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-}
-
-.editAnnouncementBtn {
   background: #2563eb;
-  color: white;
-}
-
-.removeAnnouncementBtn {
-  background: #dc2626;
   color: white;
 }
 
@@ -256,17 +249,13 @@ body {
   white-space: pre-wrap;
 }
 
-.hidden {
-  display: none;
-}
-
 #announcementDescriptionInput {
   min-height: 90px;
   resize: vertical;
 }
 
 /* =====================================================
-   GRADES GRAPH
+   GRADES
    ===================================================== */
 
 .graphContainer canvas {
@@ -287,7 +276,7 @@ body {
 }
 
 /* =====================================================
-   BACK LINK
+   HEADER LINK
    ===================================================== */
 
 header a {
@@ -300,17 +289,10 @@ header a:hover {
   text-decoration: underline;
 }
 
-.removeAssignmentBtn,
-.removeAnnouncementBtn {
-  padding: 6px 10px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  background: #dc2626;
-  color: white;
-}
+/* =====================================================
+   UTILITIES
+   ===================================================== */
 
-.removeAssignmentBtn:hover,
-.removeAnnouncementBtn:hover {
-  opacity: 0.9;
+.hidden {
+  display: none;
 }
