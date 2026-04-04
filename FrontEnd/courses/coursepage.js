@@ -419,6 +419,25 @@ function setupAddAssignmentModal() {
   });
 }
 
+async function updateCourseInBackend(courseId, updatedCourse) {
+    try {
+        const res = await fetch(`/api/courses/${courseId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updatedCourse)
+        });
+
+        if (!res.ok) {
+            throw new Error(`Failed to update course: ${res.status}`);
+        }
+
+        return await res.json();
+    } catch (err) {
+        console.error("Error updating course:", err);
+        return null;
+    }
+}
+
 function setupEditCourseInfoModal() {
   const editBtn = document.getElementById("editCourseInfoBtn");
   const overlay = document.getElementById("editCourseInfoOverlay");
@@ -451,25 +470,39 @@ function setupEditCourseInfoModal() {
     if (e.target === overlay) close();
   });
 
-  saveBtn.addEventListener("click", () => {
+  saveBtn.addEventListener("click", async () => {
     const title = document.getElementById("editCourseTitle").value.trim();
     const instructor = document.getElementById("editCourseInstructor").value.trim();
     const credits = document.getElementById("editCourseCredits").value.trim();
+    const tasInput = document.getElementById("editCourseTAs").value.trim();
 
     if (!title || !instructor || !credits) {
-      alert("Please fill all fields.");
-      return;
+        alert("Please fill all fields.");
+        return;
     }
 
-    courseData.name = title;
-    courseData.instructor = instructor;
-    courseData.credits = credits;
+    const tas = tasInput
+        ? tasInput.split(",").map(t => t.trim()).filter(t => t.length > 0)
+        : [];
 
-    localStorage.setItem(getCourseInfoKey(), JSON.stringify({ title, instructor, credits, tas }));
+    const updatedCourse = {
+        name: title,
+        instructor: instructor,
+        credits: credits,
+        tas: tas
+    };
 
+    const result = await updateCourseInBackend(courseId, updatedCourse);
+
+    if (!result) {
+        alert("Failed to save course changes.");
+        return;
+    }
+
+    courseData = result;
     renderCourseInfo();
     close();
-  });
+});
 }
 
 function setupAddAnnouncementModal() {

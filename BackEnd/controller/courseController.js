@@ -56,7 +56,64 @@ function buildCourseTemplate(templateName, code, name) {
     }
 }
 
-// Add a new course
+// Update course info
+exports.updateCourse = async (req, res) => {
+    if (!db) {
+        return res.status(500).json({ message: "Database not initialized." });
+    }
+
+    try {
+        const { id } = req.params;
+        const {
+            code,
+            name,
+            description,
+            credits,
+            section,
+            instructor,
+            schedule,
+            tas
+        } = req.body;
+
+        const courseRef = db.collection("courses").doc(id);
+        const courseDoc = await courseRef.get();
+
+        if (!courseDoc.exists) {
+            return res.status(404).json({ message: "Course not found." });
+        }
+
+        const existingCourse = courseDoc.data();
+
+        const updatedFields = {
+            updatedAt: new Date()
+        };
+
+        if (code !== undefined) updatedFields.code = String(code).trim().toUpperCase();
+        if (name !== undefined) updatedFields.name = String(name).trim();
+        if (description !== undefined) updatedFields.description = String(description).trim();
+        if (credits !== undefined) updatedFields.credits = String(credits).trim();
+        if (section !== undefined) updatedFields.section = String(section).trim();
+        if (instructor !== undefined) updatedFields.instructor = String(instructor).trim();
+        if (schedule !== undefined) updatedFields.schedule = String(schedule).trim();
+        if (tas !== undefined) updatedFields.tas = Array.isArray(tas) ? tas : [];
+
+        const finalCode = updatedFields.code ?? existingCourse.code;
+        const finalName = updatedFields.name ?? existingCourse.name;
+
+        if (!finalCode || !finalName) {
+            return res.status(400).json({ message: "Course code and name are required." });
+        }
+
+        await courseRef.update(updatedFields);
+
+        const updatedDoc = await courseRef.get();
+        res.status(200).json({ id: updatedDoc.id, ...updatedDoc.data() });
+    } catch (error) {
+        console.error("Error updating course:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};
+
 // Add a new course
 exports.addCourse = async (req, res) => {
     if (!db) {

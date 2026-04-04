@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const courseController = require("../controller/courseController");
 
+//update courseinfo
+router.put("/:id", courseController.updateCourse);
+
 // Add a course
 router.post("/add", courseController.addCourse);
 
@@ -14,6 +17,7 @@ router.get("/:id", courseController.getCourseById);
 // Get people in a course
 router.get("/:id/people", courseController.getPeopleInCourse);
 
+//update announcements
 router.put("/:id/announcements", courseController.updateAnnouncements);
 
 // Delete a course
