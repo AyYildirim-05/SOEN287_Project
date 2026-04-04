@@ -14,6 +14,8 @@ router.get("/:id", courseController.getCourseById);
 // Get people in a course
 router.get("/:id/people", courseController.getPeopleInCourse);
 
+router.put("/:id/announcements", courseController.updateAnnouncements);
+
 // Delete a course
 router.delete("/delete/:id", courseController.deleteCourse);
 

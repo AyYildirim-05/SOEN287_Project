@@ -230,9 +230,31 @@ function renderAnnouncements() {
 
   list.innerHTML = "";
 
-  (courseData.announcements || []).forEach(a => {
+  (courseData.announcements || []).forEach((a, index) => {
+    const announcement = typeof a === "string"
+      ? { title: a, description: "" }
+      : a;
+
     const li = document.createElement("li");
-    li.textContent = a;
+    li.className = "announcementCard";
+
+    li.innerHTML = `
+      <div class="announcementHeader" data-index="${index}">
+        <div class="announcementTitleWrap">
+          <h4 class="announcementTitle">${announcement.title || "Untitled Announcement"}</h4>
+        </div>
+
+        <div class="announcementButtons teacher-only">
+          <button class="editAnnouncementBtn" data-index="${index}" type="button">Edit</button>
+          <button class="removeAnnouncementBtn" data-index="${index}" type="button">Remove</button>
+        </div>
+      </div>
+
+      <div class="announcementDescription hidden" id="announcementDescription-${index}">
+        ${announcement.description ? announcement.description : "No description provided."}
+      </div>
+    `;
+
     list.appendChild(li);
   });
 }
@@ -451,20 +473,31 @@ function setupEditCourseInfoModal() {
 }
 
 function setupAddAnnouncementModal() {
-
   const addBtn = document.getElementById("addAnnouncementBtn");
   const overlay = document.getElementById("addAnnouncementOverlay");
   const cancelBtn = document.getElementById("cancelAnnouncementBtn");
   const closeBtn = document.getElementById("closeAnnouncementModalBtn");
   const saveBtn = document.getElementById("saveAnnouncementBtn");
 
-  if (!addBtn || !overlay) return;
+  if (!addBtn || !overlay || !cancelBtn || !closeBtn || !saveBtn) return;
 
-  const close = () => overlay.classList.add("hidden");
+  const titleInput = document.getElementById("announcementTitleInput");
+  const descriptionInput = document.getElementById("announcementDescriptionInput");
+  const modalTitle = document.getElementById("announcementModalTitle");
+
+  let editingIndex = null;
+
+  const close = () => {
+    overlay.classList.add("hidden");
+    titleInput.value = "";
+    descriptionInput.value = "";
+    editingIndex = null;
+    modalTitle.textContent = "Add Announcement";
+  };
 
   addBtn.addEventListener("click", () => {
     overlay.classList.remove("hidden");
-    document.getElementById("announcementTextInput").focus();
+    titleInput.focus();
   });
 
   cancelBtn.addEventListener("click", close);
@@ -474,24 +507,67 @@ function setupAddAnnouncementModal() {
     if (e.target === overlay) close();
   });
 
-  saveBtn.addEventListener("click", () => {
+  document.addEventListener("click", (e) => {
+    const editBtn = e.target.closest(".editAnnouncementBtn");
+    if (!editBtn) return;
 
-    const text =
-      document.getElementById("announcementTextInput").value.trim();
+    const index = Number(editBtn.dataset.index);
+    const announcement = courseData.announcements[index];
 
-    if (!text) {
-      alert("Please enter an announcement.");
+    const normalized = typeof announcement === "string"
+      ? { title: announcement, description: "" }
+      : announcement;
+
+    editingIndex = index;
+    titleInput.value = normalized.title || "";
+    descriptionInput.value = normalized.description || "";
+    modalTitle.textContent = "Edit Announcement";
+    overlay.classList.remove("hidden");
+    titleInput.focus();
+  });
+
+  saveBtn.addEventListener("click", async () => {
+    const title = titleInput.value.trim();
+    const description = descriptionInput.value.trim();
+
+    if (!title) {
+      alert("Please enter an announcement title.");
       return;
     }
 
-    courseData.announcements.unshift(text);
+    const newAnnouncement = { title, description };
 
-    renderAnnouncements();
+    if (!Array.isArray(courseData.announcements)) {
+      courseData.announcements = [];
+    }
 
-    document.getElementById("announcementTextInput").value = "";
-    close();
+    if (editingIndex === null) {
+      courseData.announcements.unshift(newAnnouncement);
+    } else {
+      courseData.announcements[editingIndex] = newAnnouncement;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5500/api/courses/${courseId}/announcements`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          announcements: courseData.announcements
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save announcements");
+      }
+
+      courseData = await response.json();
+      renderAnnouncements();
+      close();
+    } catch (error) {
+      console.error("Failed to save announcement:", error);
+      alert("Could not save announcement.");
+    }
   });
-
 }
 
 /*
@@ -499,6 +575,16 @@ function setupAddAnnouncementModal() {
 */
 
 document.addEventListener("click", async (e) => {
+    const announcementHeader = e.target.closest(".announcementHeader");
+  if (announcementHeader && !e.target.closest(".announcementButtons")) {
+    const index = announcementHeader.dataset.index;
+    const descriptionBox = document.getElementById(`announcementDescription-${index}`);
+    if (descriptionBox) {
+      descriptionBox.classList.toggle("hidden");
+    }
+    return;
+  }
+  
   const removeAssignmentBtn = e.target.closest(".removeAssignmentBtn");
   if (removeAssignmentBtn) {
     e.preventDefault();
@@ -522,14 +608,35 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
-  const removeAnnouncementBtn = e.target.closest(".removeAnnouncementBtn");
+    const removeAnnouncementBtn = e.target.closest(".removeAnnouncementBtn");
   if (removeAnnouncementBtn) {
     e.preventDefault();
     e.stopPropagation();
 
     const index = Number(removeAnnouncementBtn.dataset.index);
     courseData.announcements.splice(index, 1);
-    renderAnnouncements();
+
+    try {
+      const response = await fetch(`http://localhost:5500/api/courses/${courseId}/announcements`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          announcements: courseData.announcements
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to remove announcement");
+      }
+
+      courseData = await response.json();
+      renderAnnouncements();
+    } catch (error) {
+      console.error("Error deleting announcement:", error);
+      alert("Could not delete announcement.");
+    }
+
+    return;
   }
 });
 

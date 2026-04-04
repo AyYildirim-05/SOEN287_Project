@@ -205,6 +205,66 @@ body {
   gap: 12px;
 }
 
+.announcementCard {
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.announcementHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.announcementTitle {
+  margin: 0;
+  font-size: 15px;
+}
+
+.announcementButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.editAnnouncementBtn,
+.removeAnnouncementBtn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.editAnnouncementBtn {
+  background: #2563eb;
+  color: white;
+}
+
+.removeAnnouncementBtn {
+  background: #dc2626;
+  color: white;
+}
+
+.announcementDescription {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #d1d5db;
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.hidden {
+  display: none;
+}
+
+#announcementDescriptionInput {
+  min-height: 90px;
+  resize: vertical;
+}
+
 /* =====================================================
    GRADES GRAPH
    ===================================================== */

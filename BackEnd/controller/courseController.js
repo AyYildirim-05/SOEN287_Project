@@ -198,3 +198,37 @@ exports.getPeopleInCourse = async (req, res) => {
         res.status(500).json({ message: "Internal server error." });
     }
 };
+
+// Save announcements
+exports.updateAnnouncements = async (req, res) => {
+    if (!db) {
+        return res.status(500).json({ message: "Database not initialized." });
+    }
+
+    try {
+        const { id } = req.params;
+        const { announcements } = req.body;
+
+        if (!Array.isArray(announcements)) {
+            return res.status(400).json({ message: "Announcements must be an array." });
+        }
+
+        const courseRef = db.collection("courses").doc(id);
+        const courseDoc = await courseRef.get();
+
+        if (!courseDoc.exists) {
+            return res.status(404).json({ message: "Course not found." });
+        }
+
+        await courseRef.update({
+            announcements,
+            updatedAt: new Date()
+        });
+
+        const updatedDoc = await courseRef.get();
+        res.status(200).json({ id: updatedDoc.id, ...updatedDoc.data() });
+    } catch (error) {
+        console.error("Error updating announcements:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};
