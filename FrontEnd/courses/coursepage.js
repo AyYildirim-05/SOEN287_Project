@@ -107,17 +107,18 @@ async function fetchAndRenderAssignments() {
     const assignments = await assignRes.json();
 
     let completedList = [];
-    /*
+
     try {
-      const studentRes = await fetch(`http://localhost:5500/api/students/${studentId}`);
+      const studentRes = await fetch(`http://localhost:5500/api/student/${studentId}`);
       if (studentRes.ok) {
         const studentData = await studentRes.json();
         completedList = studentData.completedAssignments || [];
+      } else {
+        console.warn(`Failed to fetch student completion data: ${studentRes.status}`);
       }
     } catch (e) {
       console.warn("Could not fetch student completion data. Skipping checks.", e);
     }
-      */
 
     container.innerHTML = ""; // Clear loading text
 
@@ -126,71 +127,61 @@ async function fetchAndRenderAssignments() {
       return;
     }
 
-    assignments.forEach(a => {
-      const isCompleted = completedList.includes(a.id);
-      const dueDateString = a.dueDate 
-      ? new Date(a.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-      : "No due date";
+        assignments.forEach(a => {
+      const assignmentId = a.id || a._id;
+      const isCompleted = completedList.includes(assignmentId);
+
+      const dueDateString = a.dueDate
+        ? new Date(a.dueDate).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric"
+          })
+        : "No due date";
+
       const weightDisplay = a.weight ? `Weight: ${a.weight}` : "";
 
       const box = document.createElement("div");
       box.className = "assignmentBox";
 
-      /*box.innerHTML = `
-    <div class="assignmentText">
-      <h4>Due: ${dueDateString}</h4>
-      <p class="weightText">${weightDisplay}</p> <h5>${a.title}</h5>
-      <p>${courseData.name || courseData.code}</p>
-    </div>
-
-    
-
-    <div class="assignmentActions">
-      <label>
-        Completed
-        <input type="checkbox" class="completion-checkbox" data-id="${a.id}" ${isCompleted ? "checked" : ""}>
-      </label>
-
-<button class="removeAssignmentBtn" data-id="${a.id}" type="button">Remove</button>    </div>
-    `;*/
-
       box.innerHTML = `
-  <div class="assignmentText">
-    <h4>Due: ${dueDateString}</h4>
-    <p class="weightText">${weightDisplay}</p>
-    <h5>${a.title}</h5>
-    <p>${courseData.name || courseData.code}</p>
-    <p class="assignmentDescription">${a.description ? a.description : "No description provided."}</p>
-  </div>
- 
-  <div class="assignmentActions">
-    <label>
-      Completed
-      <input type="checkbox" class="completion-checkbox" data-id="${a.id}" ${isCompleted ? "checked" : ""}>
-    </label>
- 
-    <div class="student-only">
-      <span class="gradeDisplay" id="gradeDisplay-${a.id}">
-        ${a.grades && a.grades[studentId] !== undefined ? "Grade: " + a.grades[studentId] + "%" : "No grade yet"}
-      </span>
-      <button
-        class="enterGradeBtn"
-        type="button"
-        data-id="${a.id}"
-        data-title="${a.title.replace(/"/g, '&quot;')}"
-        data-current="${a.grades && a.grades[studentId] !== undefined ? a.grades[studentId] : ''}"
-      >
-        Enter Grade
-      </button>
-    </div>
- 
-    <button class="removeAssignmentBtn teacher-only" data-id="${a.id}" type="button">Remove</button>
-  </div>
-`;
+        <div class="assignmentText">
+          <h4>Due: ${dueDateString}</h4>
+          <p class="weightText">${weightDisplay}</p>
+          <h5>${a.title}</h5>
+          <p>${courseData.name || courseData.code}</p>
+          <p class="assignmentDescription">${a.description ? a.description : "No description provided."}</p>
+        </div>
+
+        <div class="assignmentActions">
+          <label>
+            Completed
+            <input type="checkbox" class="completion-checkbox" data-id="${assignmentId}" ${isCompleted ? "checked" : ""}>
+          </label>
+
+          <div class="student-only">
+            <span class="gradeDisplay" id="gradeDisplay-${assignmentId}">
+              ${a.grades && a.grades[studentId] !== undefined ? "Grade: " + a.grades[studentId] + "%" : "No grade yet"}
+            </span>
+            <button
+              class="enterGradeBtn"
+              type="button"
+              data-id="${assignmentId}"
+              data-title="${a.title.replace(/"/g, '&quot;')}"
+              data-current="${a.grades && a.grades[studentId] !== undefined ? a.grades[studentId] : ''}"
+            >
+              Enter Grade
+            </button>
+          </div>
+
+          <button class="removeAssignmentBtn teacher-only" data-id="${assignmentId}" type="button">Remove</button>
+        </div>
+      `;
+
       container.appendChild(box);
     });
 
-    // make checkboxes save their status for completed or uncompleted assignments to database when clicked
+        // make checkboxes save their status for completed or uncompleted assignments to database when clicked
     document.querySelectorAll(".completion-checkbox").forEach(checkbox => {
       checkbox.addEventListener("change", async (e) => {
         const assignmentId = e.target.getAttribute("data-id");
@@ -206,15 +197,39 @@ async function fetchAndRenderAssignments() {
               isCompleted: isChecked
             })
           });
+
           if (!res.ok) throw new Error("Database failed to update");
+
+          const currentUserString = localStorage.getItem("user");
+          if (currentUserString) {
+            const currentUser = JSON.parse(currentUserString);
+
+            if (!currentUser.completedAssignments) {
+              currentUser.completedAssignments = [];
+            }
+
+            if (isChecked) {
+              if (!currentUser.completedAssignments.includes(assignmentId)) {
+                currentUser.completedAssignments.push(assignmentId);
+              }
+            } else {
+              currentUser.completedAssignments = currentUser.completedAssignments.filter(
+                id => id !== assignmentId
+              );
+            }
+
+            localStorage.setItem("user", JSON.stringify(currentUser));
+          }
+
         } catch (err) {
           console.error(err);
           alert("Could not update completion status on server.");
-          e.target.checked = !isChecked; // Revert the visual checkmark if DB fails
+          e.target.checked = !isChecked; // revert visual checkbox if DB update fails
         }
       });
     });
-  } catch (error) {
+
+      } catch (error) {
     console.error("Error displaying assignments:", error);
     container.innerHTML = "<p>Error loading assignments.</p>";
   }
