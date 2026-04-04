@@ -59,11 +59,8 @@ window.addEventListener("pageshow", (event) => {
 document.addEventListener("DOMContentLoaded", () => {
     const backLinks = document.querySelectorAll(".backLink");
     backLinks.forEach(link => {
-        link.addEventListener("click", function(e) {
-            e.preventDefault();
-            // Append a timestamp to the URL to force a fresh fetch from the server
-            const targetUrl = this.href.split('?')[0];
-            window.location.href = targetUrl + "?refresh=" + new Date().getTime();
+        link.addEventListener("click", function() {
+            window.location.href = "../index.html";
         });
     });
 });
