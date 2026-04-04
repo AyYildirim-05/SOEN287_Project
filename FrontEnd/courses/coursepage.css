@@ -116,6 +116,18 @@ body {
 
 .hidden { display: none; }
 
+#assignmentDescription {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.assignmentDescription {
+  margin-top: 6px;
+  color: #444;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
 /* ====================================================
    Assignment Buttons
    ==================================================== */

@@ -160,6 +160,7 @@ async function fetchAndRenderAssignments() {
     <p class="weightText">${weightDisplay}</p>
     <h5>${a.title}</h5>
     <p>${courseData.name || courseData.code}</p>
+    <p class="assignmentDescription">${a.description ? a.description : "No description provided."}</p>
   </div>
  
   <div class="assignmentActions">
@@ -340,8 +341,9 @@ function setupAddAssignmentModal() {
     const titleInput = document.getElementById("assignmentTitle");
     const dueDateInput = document.getElementById("assignmentDue");
     const weightInput = document.getElementById("assignmentWeight");
+    const descriptionInput = document.getElementById("assignmentDescription");
 
-    if (!titleInput || !dueDateInput || !weightInput) {
+    if (!titleInput || !dueDateInput || !weightInput || !descriptionInput) {
       console.error("Error: Cannot find input IDs in the HTML.");
       return;
     }
@@ -350,7 +352,7 @@ function setupAddAssignmentModal() {
     const title = titleInput.value.trim();
     const dueDate = dueDateInput.value;
     const weight = weightInput.value.trim();
-    const courseId = new URLSearchParams(window.location.search).get("id"); //getCourseCodeFromUrl(); wouldn't work
+    const description = descriptionInput.value.trim();
 
     // Get actual teacher ID from localStorage
     const userDataString = localStorage.getItem("user");
@@ -374,6 +376,7 @@ function setupAddAssignmentModal() {
           title: title,
           dueDate: dueDate,
           weight: weight,
+          description: description,
           teacherId: teacherId
         })
       });
@@ -382,6 +385,7 @@ function setupAddAssignmentModal() {
         titleInput.value = "";
         dueDateInput.value = "";
         weightInput.value = "";
+        descriptionInput.value = "";
         close();
         await fetchAndRenderAssignments(); // Refresh list immediately
       } else {

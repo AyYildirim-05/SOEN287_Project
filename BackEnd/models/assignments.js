@@ -1,6 +1,6 @@
 class Assignment {
     constructor(data) {
-        this.id = data.id | null; // firebase document id
+        this.id = data.id || null; // firebase document id
         this.courseId = data.courseId; // document id
         this.teacherId = data.teacherId; // UID of teacher who created it 
         this.title = data.title;
