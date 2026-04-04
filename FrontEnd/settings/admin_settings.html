@@ -108,6 +108,36 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Section 4: Enroll Students by Major -->
+            <div class="admin-section">
+                <h3>Enroll Students by Major</h3>
+                <div class="form-group">
+                    <label for="enrollMajor">Select Major:</label>
+                    <select id="enrollMajor">
+                        <option value="">Select a Major</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="enrollCourse">Select Course:</label>
+                    <select id="enrollCourse">
+                        <option value="">Select a Course</option>
+                    </select>
+                </div>
+                
+                <div id="studentChecklist" class="list-container">
+                    <h5>Select Students to Enroll:</h5>
+                    <div id="enrollmentStatus" style="color: #666; margin-bottom: 10px;">Select a major and course first</div>
+                    <div style="max-height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background: #fff;">
+                        <table class="data-table">
+                            <tbody id="enrollStudentsListBody">
+                                <!-- Checkboxes populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <button id="enrollBatchBtn" class="btn" style="margin-top: 15px; background-color: #28a745;" disabled>Enroll Selected Students</button>
+                </div>
+            </div>
         </div>
     </div>
 

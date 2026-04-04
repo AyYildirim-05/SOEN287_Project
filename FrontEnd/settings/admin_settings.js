@@ -36,6 +36,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             // Populate initial View Item select (defaults to course)
             updateViewItemSelect();
+
+            // Populate Enroll selects
+            const enrollMajorSelect = document.getElementById("enrollMajor");
+            const enrollCourseSelect = document.getElementById("enrollCourse");
+
+            if (enrollMajorSelect) {
+                majors.forEach(m => {
+                    const option = document.createElement("option");
+                    option.value = m.name;
+                    option.textContent = m.name;
+                    enrollMajorSelect.appendChild(option);
+                });
+            }
+
+            if (enrollCourseSelect) {
+                courses.forEach(c => {
+                    const option = document.createElement("option");
+                    option.value = c.id;
+                    option.textContent = `${c.code}: ${c.name}`;
+                    enrollCourseSelect.appendChild(option);
+                });
+            }
         } catch (error) {
             console.error("Error loading initial data:", error);
         }
@@ -66,6 +88,107 @@ document.addEventListener("DOMContentLoaded", async () => {
                 viewItemSelect.appendChild(option);
             });
         }
+    }
+
+    // New Enroll logic
+    async function updateEnrollChecklist() {
+        const majorName = document.getElementById("enrollMajor").value;
+        const courseId = document.getElementById("enrollCourse").value;
+        const listBody = document.getElementById("enrollStudentsListBody");
+        const statusDiv = document.getElementById("enrollmentStatus");
+        const batchBtn = document.getElementById("enrollBatchBtn");
+
+        if (!majorName || !courseId) {
+            statusDiv.textContent = "Select both a major and course first";
+            listBody.innerHTML = "";
+            batchBtn.disabled = true;
+            return;
+        }
+
+        try {
+            statusDiv.textContent = "Loading students...";
+            
+            // Get all students in the major
+            const majorRes = await fetch(`/api/major/${encodeURIComponent(majorName)}/people`);
+            const majorData = await majorRes.json();
+            const studentsInMajor = majorData.students || [];
+
+            // Get students already in the course
+            const courseRes = await fetch(`/api/courses/${courseId}/people`);
+            const courseData = await courseRes.json();
+            const studentsInCourse = courseData.students || [];
+            const studentIdsInCourse = new Set(studentsInCourse.map(s => s.uid));
+
+            listBody.innerHTML = "";
+            let count = 0;
+
+            studentsInMajor.forEach(student => {
+                // Check if they are already in the course
+                const isEnrolled = studentIdsInCourse.has(student.uid);
+                
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td style="width: 40px;">
+                        <input type="checkbox" name="studentEnroll" value="${student.uid}" 
+                               ${isEnrolled ? 'disabled checked' : ''}>
+                    </td>
+                    <td>${student.fname} ${student.lname}</td>
+                    <td>${student.studentID || "N/A"} ${isEnrolled ? '(Already Enrolled)' : ''}</td>
+                `;
+                listBody.appendChild(tr);
+                if (!isEnrolled) count++;
+            });
+
+            statusDiv.textContent = `${count} student(s) available for enrollment in this major.`;
+            batchBtn.disabled = count === 0;
+
+        } catch (error) {
+            console.error("Error updating checklist:", error);
+            statusDiv.textContent = "Error loading students.";
+        }
+    }
+
+    const enrollMajorSelect = document.getElementById("enrollMajor");
+    const enrollCourseSelect = document.getElementById("enrollCourse");
+
+    if (enrollMajorSelect) enrollMajorSelect.addEventListener("change", updateEnrollChecklist);
+    if (enrollCourseSelect) enrollCourseSelect.addEventListener("change", updateEnrollChecklist);
+
+    const enrollBatchBtn = document.getElementById("enrollBatchBtn");
+    if (enrollBatchBtn) {
+        enrollBatchBtn.addEventListener("click", async () => {
+            const courseId = document.getElementById("enrollCourse").value;
+            const checkboxes = document.querySelectorAll('input[name="studentEnroll"]:checked:not(:disabled)');
+            const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedIds.length === 0) return;
+
+            if (!confirm(`Enroll ${selectedIds.length} students into the selected course?`)) return;
+
+            enrollBatchBtn.disabled = true;
+            enrollBatchBtn.textContent = "Enrolling...";
+
+            try {
+                let successCount = 0;
+                for (const uid of selectedIds) {
+                    const response = await fetch("/api/courses/enroll", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ courseId, studentId: uid })
+                    });
+                    if (response.ok) successCount++;
+                }
+
+                alert(`Successfully enrolled ${successCount} out of ${selectedIds.length} students.`);
+                updateEnrollChecklist();
+            } catch (error) {
+                console.error("Error batch enrolling:", error);
+                alert("An error occurred during enrollment.");
+            } finally {
+                enrollBatchBtn.disabled = false;
+                enrollBatchBtn.textContent = "Enroll Selected Students";
+            }
+        });
     }
 
     // 2. Form Event Listeners
