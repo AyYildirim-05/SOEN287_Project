@@ -9,18 +9,18 @@
             <form id="addCourseForm" class="modalBody">
                 <label>
                     Course Code
-                    <input id="mCourseCode" type="text" placeholder="SOEN 287" required />
+                    <input id="mCourseCode" type="text" placeholder="SOEN 287" />
                 </label>
 
                 <label>
                     Course Name
-                    <input id="mCourseName" type="text" placeholder="Web Programming" required />
+                    <input id="mCourseName" type="text" placeholder="Web Programming" />
                 </label>
 
                 <div class="twoCol">
                     <label>
                         Credits
-                        <input id="mCredits" type="number" min="0" step="0.5" placeholder="3" required />
+                        <input id="mCredits" type="number" min="0" step="0.5" placeholder="3"  />
                     </label>
 
                     <label>
@@ -35,6 +35,16 @@
                 <label>
                     Schedule (text for now)
                     <input id="mSchedule" type="text" placeholder="Tue/Thu 2:45–4:00" />
+                </label>
+
+                <label>
+                    Course Template
+                    <select id="mTemplate">
+                        <option value="">None</option>
+                        <option value="programming">Programming</option>
+                        <option value="theory">Theory</option>
+                        <option value="lab">Lab</option>
+                    </select>
                 </label>
 
                 <div class="modalFooter">

@@ -112,6 +112,58 @@ function setupAddCourseModal() {
     form.onsubmit = async (e) => {
         e.preventDefault();
 
+        //reading template
+        const template = document.getElementById("mTemplate").value;
+
+        // Template auto-fill
+        const templateSelect = document.getElementById("mTemplate");
+        const codeInput = document.getElementById("mCourseCode");
+        const nameInput = document.getElementById("mCourseName");
+        const creditsInput = document.getElementById("mCredits");
+        const sectionInput = document.getElementById("mSection");
+        const instructorInput = document.getElementById("mInstructor");
+        const scheduleInput = document.getElementById("mSchedule");
+
+        if (templateSelect) {
+            templateSelect.addEventListener("change", () => {
+                const template = templateSelect.value;
+
+                if (template === "programming") {
+                    codeInput.value = "SOEN287";
+                    nameInput.value = "Web Programming";
+                    creditsInput.value = "3";
+                    sectionInput.value = "AA";
+                    instructorInput.value = "Default Instructor";
+                    scheduleInput.value = "Monday 10:15 - 12:45";
+                }
+                else if (template === "theory") {
+                    codeInput.value = "COMP232";
+                    nameInput.value = "Mathematics for Computer Science";
+                    creditsInput.value = "3";
+                    sectionInput.value = "AA";
+                    instructorInput.value = "Default Instructor";
+                    scheduleInput.value = "Tuesday 14:00 - 16:30";
+                }
+                else if (template === "lab") {
+                    codeInput.value = "SOEN228";
+                    nameInput.value = "System Hardware";
+                    creditsInput.value = "3";
+                    sectionInput.value = "AB";
+                    instructorInput.value = "Default Instructor";
+                    scheduleInput.value = "Wednesday 13:15 - 15:45";
+                }
+                else {
+                    // If "None" selected, clear fields
+                    codeInput.value = "";
+                    nameInput.value = "";
+                    creditsInput.value = "";
+                    sectionInput.value = "";
+                    instructorInput.value = "";
+                    scheduleInput.value = "";
+                }
+            });
+        }
+
         const code = document.getElementById("mCourseCode").value.trim();
         const name = document.getElementById("mCourseName").value.trim();
         const credits = document.getElementById("mCredits").value.trim();
@@ -128,10 +180,12 @@ function setupAddCourseModal() {
             name, 
             credits, 
             section, 
-            instructor: instructorName, 
+            instructor: instructor || instructorName, 
             schedule, 
-            teacherId 
+            teacherId,
+            template
         });
+
         if (!result) {
             alert("Failed to add course to backend");
             return;

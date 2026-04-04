@@ -1,33 +1,134 @@
 const { db } = require("../database/firebase");
 
+//Create template
+function buildCourseTemplate(templateName, code, name) {
+    switch ((templateName || "").toLowerCase()) {
+        case "programming":
+            return {
+                description: `Welcome to ${code} - ${name}. This course includes programming assignments and project-based work.`,
+                tas: [],
+                announcements: [
+                    {
+                        title: "Welcome",
+                        description: "Welcome to the course. Please review the syllabus and schedule."
+                    },
+                    {
+                        title: "Getting Started",
+                        description: "Make sure you have access to the course materials and required software."
+                    }
+                ],
+                assignments: []
+            };
+
+        case "theory":
+            return {
+                description: `Welcome to ${code} - ${name}. This course focuses on theoretical concepts, readings, and evaluations.`,
+                tas: [],
+                announcements: [
+                    {
+                        title: "Welcome",
+                        description: "Welcome to the course. Please read the outline carefully."
+                    }
+                ],
+                assignments: []
+            };
+
+        case "lab":
+            return {
+                description: `Welcome to ${code} - ${name}. This course includes lab work and practical exercises.`,
+                tas: [],
+                announcements: [
+                    {
+                        title: "Lab Preparation",
+                        description: "Please bring your materials and review the lab instructions before each session."
+                    }
+                ],
+                assignments: []
+            };
+
+        default:
+            return {
+                description: "",
+                tas: [],
+                announcements: [],
+                assignments: []
+            };
+    }
+}
+
+// Add a new course
 // Add a new course
 exports.addCourse = async (req, res) => {
     if (!db) {
         return res.status(500).json({ message: "Database not initialized." });
     }
-    try {
-        const { code, name, description, credits, section, instructor, schedule, teacherId } = req.body;
 
-        if (!code || !name) {
+    try {
+        const {
+            code,
+            name,
+            description,
+            credits,
+            section,
+            instructor,
+            schedule,
+            teacherId,
+            template
+        } = req.body;
+
+        // Start with submitted values
+        let finalCode = code ? code.trim() : "";
+        let finalName = name ? name.trim() : "";
+        let finalCredits = credits ? String(credits).trim() : "";
+        let finalSection = section ? section.trim() : "";
+        let finalInstructor = instructor ? instructor.trim() : "";
+        let finalSchedule = schedule ? schedule.trim() : "";
+
+        // Fill defaults if a template was selected
+        if (template === "programming") {
+            finalCode = finalCode || "SOEN287";
+            finalName = finalName || "Web Programming";
+            finalCredits = finalCredits || "3";
+            finalSection = finalSection || "AA";
+            finalSchedule = finalSchedule || "Monday 10:15 - 12:45";
+        } else if (template === "theory") {
+            finalCode = finalCode || "COMP232";
+            finalName = finalName || "Mathematics for Computer Science";
+            finalCredits = finalCredits || "3";
+            finalSection = finalSection || "AA";
+            finalSchedule = finalSchedule || "Tuesday 14:00 - 16:30";
+        } else if (template === "lab") {
+            finalCode = finalCode || "SOEN228";
+            finalName = finalName || "System Hardware";
+            finalCredits = finalCredits || "3";
+            finalSection = finalSection || "AB";
+            finalSchedule = finalSchedule || "Wednesday 13:15 - 15:45";
+        }
+
+        // Validate after template defaults are applied
+        if (!finalCode || !finalName) {
             return res.status(400).json({ message: "Course code and name are required." });
         }
 
-        const newCourse = {
-            code: code.toUpperCase(),
-            name,
-            description: description || "",
-            credits: credits || "",
+        const templateData = buildCourseTemplate(template, finalCode.toUpperCase(), finalName);
 
-    section: section || "",
-    instructor: instructor || "",
-    schedule: schedule || "",
-    teacherId: teacherId || "",
-    studentIds: [],
-    assignments: [],
-    announcements: [],
-    createdAt: new Date(),
-    updatedAt: new Date()
-};
+        const newCourse = {
+            code: finalCode.toUpperCase(),
+            name: finalName,
+            description: description || templateData.description || "",
+            credits: finalCredits || "",
+            section: finalSection || "",
+            instructor: finalInstructor || "",
+            schedule: finalSchedule || "",
+            teacherId: teacherId || "",
+            studentIds: [],
+            tas: templateData.tas || [],
+            assignments: templateData.assignments || [],
+            announcements: templateData.announcements || [],
+            template: template || "",
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
 
         const docRef = await db.collection("courses").add(newCourse);
         const courseId = docRef.id;
