@@ -274,10 +274,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             const viewBy = document.getElementById("viewBy").value;
             const teacherNameSpan = document.getElementById("teacherName");
             const studentsListBody = document.getElementById("studentsListBody");
+            const removeBtn = document.getElementById("removePeopleBtn");
+            const teacherCheck = document.getElementById("removeTeacherCheck");
+            const studentHeader = document.getElementById("studentSelectHeader");
 
             if (!id) {
                 if (teacherNameSpan) teacherNameSpan.textContent = "N/A";
                 if (studentsListBody) studentsListBody.innerHTML = `<tr><td colspan="2">Select an item</td></tr>`;
+                if (removeBtn) removeBtn.style.display = "none";
+                if (teacherCheck) teacherCheck.style.display = "none";
+                if (studentHeader) studentHeader.style.display = "none";
                 return;
             }
 
@@ -285,8 +291,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 let url = "";
                 if (viewBy === "course") {
                     url = `/api/courses/${id}/people`;
+                    if (removeBtn) removeBtn.style.display = "block";
+                    if (studentHeader) studentHeader.style.display = "table-cell";
                 } else {
                     url = `/api/major/${encodeURIComponent(id)}/people`;
+                    if (removeBtn) removeBtn.style.display = "none";
+                    if (teacherCheck) teacherCheck.style.display = "none";
+                    if (studentHeader) studentHeader.style.display = "none";
                 }
 
                 console.log(`Fetching people from: ${url}`);
@@ -298,6 +309,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (teacherNameSpan) {
                     if (viewBy === "course") {
                         teacherNameSpan.textContent = data.teacher ? `${data.teacher.fname} ${data.teacher.lname}` : "N/A";
+                        if (teacherCheck) {
+                            teacherCheck.style.display = data.teacher ? "inline-block" : "none";
+                            teacherCheck.checked = false;
+                            teacherCheck.value = data.teacher ? data.teacher.id : "";
+                        }
                     } else {
                         teacherNameSpan.textContent = data.teachers && data.teachers.length > 0 
                             ? data.teachers.map(t => `${t.fname} ${t.lname}`).join(", ") 
@@ -311,19 +327,84 @@ document.addEventListener("DOMContentLoaded", async () => {
                     if (data.students && data.students.length > 0) {
                         data.students.forEach(s => {
                             const tr = document.createElement("tr");
-                            tr.innerHTML = `
-                                <td>${s.fname} ${s.lname}</td>
-                                <td>${s.studentID || "N/A"}</td>
-                            `;
+                            if (viewBy === "course") {
+                                tr.innerHTML = `
+                                    <td><input type="checkbox" name="removeStudentCheck" value="${s.id || s.uid}"></td>
+                                    <td>${s.fname} ${s.lname}</td>
+                                    <td>${s.studentID || "N/A"}</td>
+                                `;
+                            } else {
+                                tr.innerHTML = `
+                                    <td>${s.fname} ${s.lname}</td>
+                                    <td>${s.studentID || "N/A"}</td>
+                                `;
+                            }
                             studentsListBody.appendChild(tr);
                         });
                     } else {
-                        studentsListBody.innerHTML = `<tr><td colspan="2">No students found</td></tr>`;
+                        const colSpan = viewBy === "course" ? 3 : 2;
+                        studentsListBody.innerHTML = `<tr><td colspan="${colSpan}">No students found</td></tr>`;
                     }
                 }
 
             } catch (error) {
                 console.error("Error fetching people:", error);
+            }
+        });
+    }
+
+    const removePeopleBtn = document.getElementById("removePeopleBtn");
+    if (removePeopleBtn) {
+        removePeopleBtn.addEventListener("click", async () => {
+            const courseId = document.getElementById("viewItem").value;
+            if (!courseId) return;
+
+            const teacherCheck = document.getElementById("removeTeacherCheck");
+            const studentChecks = document.querySelectorAll('input[name="removeStudentCheck"]:checked');
+            
+            const removeTeacher = teacherCheck && teacherCheck.checked;
+            const studentIdsToRemove = Array.from(studentChecks).map(cb => cb.value);
+
+            if (!removeTeacher && studentIdsToRemove.length === 0) {
+                alert("Please select at least one person to remove.");
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to remove the selected ${studentIdsToRemove.length + (removeTeacher ? 1 : 0)} people from this course?`)) {
+                return;
+            }
+
+            removePeopleBtn.disabled = true;
+            removePeopleBtn.textContent = "Removing...";
+
+            try {
+                // Remove teacher
+                if (removeTeacher) {
+                    const teacherId = teacherCheck.value;
+                    await fetch("/api/courses/remove-teacher", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ courseId, teacherId })
+                    });
+                }
+
+                // Remove students
+                for (const studentId of studentIdsToRemove) {
+                    await fetch("/api/courses/unenroll", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ courseId, studentId })
+                    });
+                }
+
+                alert("Successfully removed selected people from the course.");
+                location.reload(); // Reload the webpage
+            } catch (error) {
+                console.error("Error removing people:", error);
+                alert("An error occurred while removing people.");
+            } finally {
+                removePeopleBtn.disabled = false;
+                removePeopleBtn.textContent = "Remove Selected from Course";
             }
         });
     }

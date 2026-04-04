@@ -26,4 +26,10 @@ router.delete("/delete/:id", courseController.deleteCourse);
 // Enroll in a course
 router.post("/enroll", courseController.enrollInCourse);
 
+// Unenroll from a course
+router.post("/unenroll", courseController.unenrollFromCourse);
+
+// Remove teacher from a course
+router.post("/remove-teacher", courseController.removeTeacherFromCourse);
+
 module.exports = router;

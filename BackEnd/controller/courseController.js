@@ -1,4 +1,4 @@
-const { db } = require("../database/firebase");
+const { db, admin } = require("../database/firebase");
 
 //Create template
 function buildCourseTemplate(templateName, code, name) {
@@ -195,7 +195,6 @@ exports.addCourse = async (req, res) => {
             const teacherRef = db.collection("teachers").doc(teacherId);
             const teacherDoc = await teacherRef.get();
             if (teacherDoc.exists) {
-                const admin = require("firebase-admin");
                 await teacherRef.update({
                     teachingClasses: admin.firestore.FieldValue.arrayUnion(courseId)
                 });
@@ -242,7 +241,6 @@ exports.deleteCourse = async (req, res) => {
         }
 
         const { teacherId, studentIds } = courseDoc.data();
-        const admin = require("firebase-admin");
 
         // Remove from teacher
         if (teacherId) {
@@ -283,8 +281,6 @@ exports.enrollInCourse = async (req, res) => {
             return res.status(400).json({ message: "Course ID and Student ID are required." });
         }
 
-        const admin = require("firebase-admin");
-
         // Update course
         await db.collection("courses").doc(courseId).update({
             studentIds: admin.firestore.FieldValue.arrayUnion(studentId)
@@ -298,6 +294,65 @@ exports.enrollInCourse = async (req, res) => {
         res.status(200).json({ message: "Enrolled successfully." });
     } catch (error) {
         console.error("Error enrolling in course:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};
+
+// Unenroll a student from a course
+exports.unenrollFromCourse = async (req, res) => {
+    if (!db) {
+        return res.status(500).json({ message: "Database not initialized." });
+    }
+    try {
+        const { courseId, studentId } = req.body;
+
+        if (!courseId || !studentId) {
+            return res.status(400).json({ message: "Course ID and Student ID are required." });
+        }
+
+        // Update course
+        await db.collection("courses").doc(courseId).update({
+            studentIds: admin.firestore.FieldValue.arrayRemove(studentId)
+        });
+
+        // Update student
+        await db.collection("students").doc(studentId).update({
+            enrolledCourses: admin.firestore.FieldValue.arrayRemove(courseId)
+        });
+
+        res.status(200).json({ message: "Unenrolled successfully." });
+    } catch (error) {
+        console.error("Error unenrolling from course:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};
+
+// Remove teacher from a course
+exports.removeTeacherFromCourse = async (req, res) => {
+    if (!db) {
+        return res.status(500).json({ message: "Database not initialized." });
+    }
+    try {
+        const { courseId, teacherId } = req.body;
+
+        if (!courseId || !teacherId) {
+            return res.status(400).json({ message: "Course ID and Teacher ID are required." });
+        }
+
+        // Update course - set teacherId to empty string and instructor name to empty
+        await db.collection("courses").doc(courseId).update({
+            teacherId: "",
+            instructor: ""
+        });
+
+        // Update teacher
+        await db.collection("teachers").doc(teacherId).update({
+            teachingClasses: admin.firestore.FieldValue.arrayRemove(courseId)
+        });
+
+        res.status(200).json({ message: "Teacher removed from course successfully." });
+    } catch (error) {
+        console.error("Error removing teacher from course:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 };

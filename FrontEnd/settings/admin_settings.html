@@ -88,6 +88,7 @@
                 <div id="peopleList" class="list-container">
                     <h4>Results:</h4>
                     <div id="teacherResult">
+                        <input type="checkbox" id="removeTeacherCheck" style="display: none; width: auto; margin-right: 10px;">
                         <strong>Teacher:</strong> <span id="teacherName">N/A</span>
                     </div>
                     <h5>Students:</h5>
@@ -95,17 +96,19 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
+                                    <th id="studentSelectHeader" style="display: none; width: 40px;">Select</th>
                                     <th>Name</th>
                                     <th>ID</th>
                                 </tr>
                             </thead>
                             <tbody id="studentsListBody">
                                 <tr>
-                                    <td colspan="2">Select an item</td>
+                                    <td colspan="2" id="emptyRow">Select an item</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+                    <button id="removePeopleBtn" class="btn" style="margin-top: 15px; background-color: #dc3545; display: none;">Remove Selected from Course</button>
                 </div>
             </div>
 
