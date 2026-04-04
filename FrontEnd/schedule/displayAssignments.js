@@ -28,7 +28,7 @@ async function loadDashboardAssignments() {
         if (!res.ok) throw new Error("Failed to fetch assignments");
         let assignments =  await res.json();
 
-        let relaventCourses = [];
+        let relevantCourses = [];
         
         if (userRole === "student") {
             const studentRes = await fetch(`/api/student/${userId}`);
@@ -39,7 +39,7 @@ async function loadDashboardAssignments() {
             } else {
                 console.warn(`Failed to fetch student data: ${studentRes.status}`);
             }
-        } else if (user === "teacher") {
+        } else if (userRole === "teacher") {
             const teacherRes = await fetch(`/api/teacher/${userId}`);
             if (teacherRes.ok) {
                 const teacherData = await teacherRes.json();
@@ -50,7 +50,7 @@ async function loadDashboardAssignments() {
         }
 
         if (userRole != "admin") {
-            assignments = assignments.filter(a => relaventCourses.includes(a.courseId));
+            assignments = assignments.filter(a => relevantCourses.includes(a.courseId));
         }
 
         container.innerHTML = "";
@@ -99,7 +99,7 @@ async function loadDashboardAssignments() {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
-                            studentId: studentId,
+                            studentId: userId,
                             assignmentId: assignmentId,
                             isCompleted: isChecked
                         })
