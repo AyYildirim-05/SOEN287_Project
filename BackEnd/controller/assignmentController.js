@@ -22,11 +22,11 @@ exports.addAssignment = async (req, res) => {
 
 // Helper function to safely parse dates
 const formatTimestamp = (field) => {
-    if (!field) return null;
-    if (typeof field.toDate === 'function') return field.toDate().toISOString();
-    if (field._seconds !== undefined) return new Date(field._seconds * 1000).toISOString();
-    if (field instanceof Date) return field.toISOString();
-    const parsedDate = new Date(field);
+    if (!field) return null; 
+    if (typeof field.toDate === 'function') return field.toDate().toISOString(); // 1. If it's a standard Firebase Timestamp class
+    if (field._seconds !== undefined) return new Date(field._seconds * 1000).toISOString(); // 2. If Firebase returned a raw object (stripped of prototype)
+    if (field instanceof Date) return field.toISOString(); // 3. If it's already a JS Date object
+    const parsedDate = new Date(field); // 4. If it was saved as a plain string (e.g., "Mar 30, 2026")
     if (!isNaN(parsedDate.getTime())) return parsedDate.toISOString();
     return field;
 };
@@ -63,11 +63,11 @@ exports.toggleCompletion = async (req, res) => {
         const studentRef = db.collection("students").doc(studentId);
 
         if (isCompleted) {
-            await studentRef.update({
+            await studentRef.update({  // add to the completed assignments array
                 completedAssignments: admin.firestore.FieldValue.arrayUnion(assignmentId)
             });
         } else {
-            await studentRef.update({
+            await studentRef.update({ // remove from the completed assignments array
                 completedAssignments: admin.firestore.FieldValue.arrayRemove(assignmentId)
             });
         }
@@ -100,7 +100,7 @@ exports.getAllAssignments = async (req, res) => {
     }
 };
 
-// Delete an assignment (teacher)
+// Delete an assignment
 exports.deleteAssignment = async (req, res) => {
     try {
         const { id } = req.params;
@@ -111,7 +111,7 @@ exports.deleteAssignment = async (req, res) => {
             return res.status(404).json({ message: "Assignment not found." });
         }
 
-        await docRef.delete();
+        await docRef.delete(); // delete the document from firebase
         res.status(200).json({ message: "Assignment deleted successfully." });
     } catch (error) {
         console.error("Error deleting assignment:", error);
@@ -119,7 +119,7 @@ exports.deleteAssignment = async (req, res) => {
     }
 };
 
-// Student submits their own grade for an assignment
+// Students updating their grades
 exports.gradeAssignment = async (req, res) => {
     try {
         const studentId = req.user.uid;
