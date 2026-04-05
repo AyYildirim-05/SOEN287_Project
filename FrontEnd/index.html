@@ -159,6 +159,9 @@
 
             <p id="gpaEstimate">Estimated GPA: N/A</p>
 
+            <button id="exportCsvBtn">Export Grades to CSV</button>
+            <button id="exportPdfBtn">Export Grades to PDF</button>
+
             <div class="graphContainer">
                 <canvas id="gradesChart"></canvas>
             </div>
@@ -192,6 +195,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0"></script> <!-- This is to importat Chart.js -->
     <script src="Graph\gradesGraph.js"></script> <!-- This is the script for the grades graph -->
     <script src="Graph/gpaEstimate.js"></script>
+    <script src="Graph/csvExporter.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script> <!-- jsPDF library-->
+    <script src="Graph/pdfExporter.js"></script>
 
     <script src="schedule/archiveAssignments.js"></script> <!-- This is for the display of the archived assignments -->
     <script src="schedule/displayAssignments.js"></script> <!-- This is to display the assignments from the database -->
