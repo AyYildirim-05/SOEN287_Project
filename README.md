@@ -52,7 +52,7 @@ The system is a comprehensive management tool designed for three primary user ro
 - **Database:** Firebase Firestore (NoSQL)
 - **Authentication:** Firebase Auth
 - **Frontend:** HTML5, CSS3, Vanilla JavaScript
-- **Visualization:** HTML5 Canvas API for custom data charting
+- **Visualization:** HTML5 Canvas and Chart.js to visualize bar graphs
 - **Development Tools:** Nodemon, Dotenv, UUID
 
 ---
