@@ -5,6 +5,9 @@ const courseController = require("../controller/courseController");
 //update courseinfo
 router.put("/:id", courseController.updateCourse);
 
+// Update course status (enable/disable)
+router.put("/:id/status", courseController.updateCourseStatus);
+
 // Add a course
 router.post("/add", courseController.addCourse);
 

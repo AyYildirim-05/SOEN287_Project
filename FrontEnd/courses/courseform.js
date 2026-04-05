@@ -358,8 +358,8 @@ function setupEnrollCourseModal() {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const enrolledIds = new Set((user.enrolledCourses || []));
 
-        // Only show courses not already enrolled
-        const choices = catalog.filter(c => !enrolledIds.has(c.id));
+        // Only show courses not already enrolled AND enabled
+        const choices = catalog.filter(c => !enrolledIds.has(c.id) && c.isEnabled !== false);
 
         select.innerHTML = "";
         if (choices.length === 0) {

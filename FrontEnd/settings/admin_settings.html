@@ -15,6 +15,8 @@
             <a href="../index.html" class="backLink">← Dashboard</a>
         </nav>
         <div class="account">
+            <a href="../Auths/sign_in.html" class="login">Log In</a>
+            <a href="../Auths/sign_up.html" class="signup">Sign Up</a>
             <div class="profile">
                 <img src="../Images/profile_icon.png" onclick="toggleProfileMenu()">
             </div>
@@ -141,10 +143,26 @@
                     <button id="enrollBatchBtn" class="btn" style="margin-top: 15px; background-color: #28a745;" disabled>Enroll Selected Students</button>
                 </div>
             </div>
+
+            <!-- Section 5: Enable/Disable Courses -->
+            <div class="admin-section">
+                <h3>Manage Course Status</h3>
+                <div class="form-group">
+                    <label for="manageStatusCourse">Select Course:</label>
+                    <select id="manageStatusCourse">
+                        <option value="">Select a Course</option>
+                    </select>
+                </div>
+                <div id="courseStatusDisplay" style="margin-bottom: 15px; font-weight: bold;">
+                    Status: <span id="currentCourseStatus">N/A</span>
+                </div>
+                <button id="toggleCourseStatusBtn" class="btn" style="background-color: #6c757d;" disabled>Toggle Status</button>
+            </div>
         </div>
     </div>
 
     <script src="../mainPage.js"></script>
+    <script src="../userStatus.js"></script>
     <script src="admin_settings.js"></script>
 </body>
 </html>

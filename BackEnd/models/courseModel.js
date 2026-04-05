@@ -9,6 +9,7 @@ class Course {
         this.createdAt = data.createdAt || new Date();
         this.updatedAt = data.updatedAt || new Date();
         this.assignments = data.assignments || [];
+        this.isEnabled = data.isEnabled !== undefined ? data.isEnabled : true;
     }
     
     toFirestore() {
@@ -21,7 +22,8 @@ class Course {
             studentIds: this.studentIds,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
-            assignments: this.assignments
+            assignments: this.assignments,
+            isEnabled: this.isEnabled
         };
     }
 }
