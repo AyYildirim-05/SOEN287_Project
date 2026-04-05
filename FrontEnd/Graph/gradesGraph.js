@@ -156,8 +156,8 @@ const gradesGraph = new Chart("gradesChart", {
         return;
     }
 
-    // ── SHARED HELPER: renders a grouped bar chart given courses + students ──
-    // Used by both teacher and admin graphs since the logic is identical.
+    // ── Helper: renders a grouped bar chart given courses + students ──
+    // Used by both teacher and admin graphs since the logic is the same.
     function renderGroupedBarChart(courses, students) {
         const courseColors = [
             "rgba(59,  130, 246, 0.8)",
@@ -256,7 +256,7 @@ const gradesGraph = new Chart("gradesChart", {
     }
 
     // ── ADMIN GRAPH ──────────────────────────────────────────────────
-    // Same as teacher graph but fetches ALL courses via admin-courses endpoint
+    // Same as teacher graph but shows ALL courses 
     if (user.role === "admin") {
         let graphData = { courses: [], students: [] };
 

@@ -11,12 +11,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadHtmlIntoBody("courses/components/addCourseModal.html");
     await loadHtmlIntoBody("courses/components/deleteCourseModal.html");
     await loadHtmlIntoBody("courses/components/enrollCourseModal.html");
-    await loadHtmlIntoBody("courses/components/unenrollCourseModal.html"); // NEW
+    await loadHtmlIntoBody("courses/components/unenrollCourseModal.html");
 
     setupAddCourseModal();
     setupSafeDeleteModal();
     setupEnrollCourseModal();
-    setupUnenrollCourseModal(); // NEW
+    setupUnenrollCourseModal(); 
     renderCourses();
 });
 
@@ -217,7 +217,7 @@ function setupSafeDeleteModal() {
     });
 }
 
-// Unenroll modal (student)
+// Unenroll modal (student) (Sahon)
 function setupUnenrollCourseModal() {
     const userRole = getRole();
     if (userRole !== "student") return;
@@ -231,15 +231,18 @@ function setupUnenrollCourseModal() {
     const closeBtn = document.getElementById("closeUnenrollModalBtn");
     const cancelBtn = document.getElementById("cancelUnenrollBtn");
 
-    let targetCourseBox = null;
-    let requiredCode = "";
+    let targetCourseBox = null; // The chosen course the student chose to unenroll from
+    let requiredCode = ""; // The code requierd to unenroll, aka the code of the course
 
+    // Opens when student clicks "Unenroll" button
     function openModal(courseBox) {
+        // Displays popup
         targetCourseBox = courseBox;
         const codeEl = courseBox.querySelector(".courseCode");
         const nameEl = courseBox.querySelector(".courseName");
         requiredCode = codeEl ? codeEl.textContent.trim() : "";
         const name = nameEl ? nameEl.textContent.trim() : "";
+        // Confirmation code
         unenrollText.textContent = `You are about to unenroll from ${requiredCode}${name ? " — " + name : ""}. To confirm, type: ${requiredCode}`;
         unenrollInput.value = "";
         confirmBtn.disabled = true;
@@ -247,16 +250,19 @@ function setupUnenrollCourseModal() {
         unenrollInput.focus();
     }
 
+    // Closing popup
     function closeModal() {
         modal.classList.add("hidden");
         targetCourseBox = null;
         requiredCode = "";
     }
 
+    // Confirm button is disabled until the requiredcode matches the input
     unenrollInput.addEventListener("input", () => {
         confirmBtn.disabled = unenrollInput.value.trim().toUpperCase() !== requiredCode.trim().toUpperCase();
     });
 
+    // Unenroll button clicked
     confirmBtn.addEventListener("click", async () => {
         if (!targetCourseBox) return;
         const courseId = targetCourseBox.dataset.id;
@@ -265,7 +271,7 @@ function setupUnenrollCourseModal() {
 
         if (!courseId || !studentId) { alert("Could not identify course or student."); return; }
 
-        const success = await unenrollFromCourseInBackend(courseId, studentId);
+        const success = await unenrollFromCourseInBackend(courseId, studentId); // Backend call to unenroll
         if (!success) { alert("Failed to unenroll. Please try again."); return; }
 
         // Update local user object
