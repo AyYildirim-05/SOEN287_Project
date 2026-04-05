@@ -353,12 +353,12 @@ exports.unenrollFromCourse = async (req, res) => {
             return res.status(400).json({ message: "Course ID and Student ID are required." });
         }
 
-        // Update course
+        // Update course by removing the student's id
         await db.collection("courses").doc(courseId).update({
             studentIds: admin.firestore.FieldValue.arrayRemove(studentId)
         });
 
-        // Update student
+        // Update student by removing enrolled course 
         await db.collection("students").doc(studentId).update({
             enrolledCourses: admin.firestore.FieldValue.arrayRemove(courseId)
         });

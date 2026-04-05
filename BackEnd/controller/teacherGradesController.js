@@ -1,12 +1,11 @@
 const { db } = require("../database/firebase");
 
-// Get all students across all courses a teacher is teaching,
-// with their weighted grade per course, for the graph.
+// Get all students across all courses a teacher is teaching with their averages
 exports.getTeacherCoursesForGraph = async (req, res) => {
     try {
-        const uid = req.user.uid; // Provided by authMiddleware
+        const uid = req.user.uid; 
 
-        // 1. Fetch the teacher document to get their teaching classes
+        // Gets all courses a teacher is teaching
         const teacherDoc = await db.collection("teachers").doc(uid).get();
         if (!teacherDoc.exists) {
             return res.status(404).json({ message: "Teacher not found." });
@@ -19,7 +18,7 @@ exports.getTeacherCoursesForGraph = async (req, res) => {
             return res.status(200).json({ courses: [], students: [] });
         }
 
-        // 2. Fetch each course document
+        // Gets all course documents (we use chunks of 30s because of firestore's special quirk with how they store things)
         const courseChunks = [];
         for (let i = 0; i < teachingClassIds.length; i += 30) {
             courseChunks.push(teachingClassIds.slice(i, i + 30));
@@ -35,25 +34,25 @@ exports.getTeacherCoursesForGraph = async (req, res) => {
             });
         }
 
-        // 3. Collect all unique student IDs across all courses
+        // Gets all stuedent IDS in all courses of the teacher. A set is used to avoid duplicate students
         const allStudentIdSet = new Set();
         courses.forEach(course => {
             (course.studentIds || []).forEach(sid => allStudentIdSet.add(sid));
         });
 
-        const allStudentIds = Array.from(allStudentIdSet);
+        const allStudentIds = Array.from(allStudentIdSet); // Transforms back to array for easier handling
 
         if (allStudentIds.length === 0) {
             return res.status(200).json({ courses: [], students: [] });
         }
 
-        // 4. Fetch all student documents (in chunks of 30)
+        // Gets all student documents
         const studentChunks = [];
         for (let i = 0; i < allStudentIds.length; i += 30) {
             studentChunks.push(allStudentIds.slice(i, i + 30));
         }
 
-        const studentMap = {}; // { uid: { fname, lname } }
+        const studentMap = {}; // { uid: { fname, lname } }, we use this format because on the x-axis, we'll say first and last name of each students
         for (const chunk of studentChunks) {
             const snapshot = await db.collection("students")
                 .where("uid", "in", chunk)
@@ -67,7 +66,7 @@ exports.getTeacherCoursesForGraph = async (req, res) => {
             });
         }
 
-        // 5. For each course, fetch assignments and compute each student's weighted grade
+        // For each course, get assignment grades and do the math to find average
         // Result shape: { courseId: { studentUid: grade } }
         const gradesByCourse = {};
 
@@ -89,11 +88,11 @@ exports.getTeacherCoursesForGraph = async (req, res) => {
                 let totalWeight = 0;
 
                 assignments.forEach(a => {
-                    const weight = parseFloat(String(a.weight).replace("%", "")) || 0;
+                    const weight = parseFloat(String(a.weight).replace("%", "")) || 0; // Converting weight (string) into a number
                     const grades = a.grades || {};
                     if (grades[studentUid] !== undefined) {
-                        weightedSum += weight * grades[studentUid];
-                        totalWeight += weight;
+                        weightedSum += weight * grades[studentUid]; // Imagine this is the numerator
+                        totalWeight += weight; // Imagine this is the denominator
                     }
                 });
 
@@ -104,7 +103,7 @@ exports.getTeacherCoursesForGraph = async (req, res) => {
             });
         }
 
-        // 6. Build the final response
+        // Data gets transfered to front end
         // courses: [{ id, code, name }]
         // students: [{ uid, name, grades: { courseId: gradeOrNull } }]
         const studentsResult = allStudentIds

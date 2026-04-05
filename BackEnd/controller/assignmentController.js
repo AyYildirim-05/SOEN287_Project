@@ -122,9 +122,11 @@ exports.deleteAssignment = async (req, res) => {
 // Students updating their grades
 exports.gradeAssignment = async (req, res) => {
     try {
+        // Gets the student ID of the logged in user
         const studentId = req.user.uid;
         const { assignmentId, score } = req.body;
 
+        // Error Handling
         if (!assignmentId || score === undefined) {
             return res.status(400).json({ message: "assignmentId and score are required." });
         }
@@ -133,6 +135,7 @@ exports.gradeAssignment = async (req, res) => {
             return res.status(400).json({ message: "Score must be between 0 and 100." });
         }
 
+        // Gets the assignment id from db
         const assignmentRef = db.collection("assignments").doc(assignmentId);
         const assignmentDoc = await assignmentRef.get();
 
@@ -140,6 +143,7 @@ exports.gradeAssignment = async (req, res) => {
             return res.status(404).json({ message: "Assignment not found." });
         }
 
+        // Updates the map in the assignment collection in db
         await assignmentRef.update({
             [`grades.${studentId}`]: score
         });
@@ -165,9 +169,15 @@ exports.editAssignment = async (req, res) => {
         }
 
         const updates = { updatedAt: new Date() };
-        if (title !== undefined)       updates.title = title;
-        if (weight !== undefined)      updates.weight = weight;
-        if (description !== undefined) updates.description = description;
+        if (title !== undefined) {
+            updates.title = title;
+        }      
+        if (weight !== undefined) {
+            updates.weight = weight;
+        }    
+        if (description !== undefined) {
+            updates.description = description;
+        }
         if (dueDate !== undefined) {
             const parsed = new Date(dueDate);
             updates.dueDate = isNaN(parsed.getTime()) ? new Date() : parsed;
