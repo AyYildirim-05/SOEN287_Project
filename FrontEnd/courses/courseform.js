@@ -321,7 +321,8 @@ function setupEnrollCourseModal() {
         const catalog = await getCatalog();
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const enrolledIds = new Set(user.enrolledCourses || []);
-        const choices = catalog.filter(c => !enrolledIds.has(c.id));
+        // Filter out courses that are already enrolled OR are disabled
+        const choices = catalog.filter(c => !enrolledIds.has(c.id) && c.isEnabled !== false);
 
         select.innerHTML = "";
         if (choices.length === 0) {

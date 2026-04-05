@@ -488,24 +488,3 @@ exports.updateAnnouncements = async (req, res) => {
         res.status(500).json({ message: "Internal server error." });
     }
 };
-
-exports.unenrollFromCourse = async (req, res) => {
-    if (!db) return res.status(500).json({ message: "Database not initialized." });
-    try {
-        const { courseId, studentId } = req.body;
-        if (!courseId || !studentId) {
-            return res.status(400).json({ message: "Course ID and Student ID are required." });
-        }
-        const admin = require("firebase-admin");
-        await db.collection("courses").doc(courseId).update({
-            studentIds: admin.firestore.FieldValue.arrayRemove(studentId)
-        });
-        await db.collection("students").doc(studentId).update({
-            enrolledCourses: admin.firestore.FieldValue.arrayRemove(courseId)
-        });
-        res.status(200).json({ message: "Unenrolled successfully." });
-    } catch (error) {
-        console.error("Error unenrolling from course:", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-};
