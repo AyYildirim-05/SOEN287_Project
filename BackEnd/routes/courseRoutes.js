@@ -23,4 +23,7 @@ router.post("/enroll", courseController.enrollInCourse);
 // Unenroll from a course (student-only) 
 router.post("/unenroll", courseController.unenrollFromCourse);
 
+//Update announcements for a course
+router.put("/:id/announcements", courseController.updateAnnouncements);
+
 module.exports = router;
