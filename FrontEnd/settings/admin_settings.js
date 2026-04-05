@@ -63,6 +63,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             // Populate Manage Status select
             const manageStatusSelect = document.getElementById("manageStatusCourse");
+            const updateTeacherSelect = document.getElementById("updateCourseTeacher");
             if (manageStatusSelect) {
                 manageStatusSelect.innerHTML = '<option value="">Select a Course</option>';
                 courses.forEach(c => {
@@ -70,6 +71,16 @@ document.addEventListener("DOMContentLoaded", async () => {
                     option.value = c.id;
                     option.textContent = `${c.code}: ${c.name}`;
                     manageStatusSelect.appendChild(option);
+                });
+            }
+
+            if (updateTeacherSelect) {
+                updateTeacherSelect.innerHTML = '<option value="">No Teacher (Clear)</option>';
+                teachers.forEach(t => {
+                    const option = document.createElement("option");
+                    option.value = t.id;
+                    option.textContent = `${t.fname} ${t.lname} (${t.major || 'No Major'})`;
+                    updateTeacherSelect.appendChild(option);
                 });
             }
         } catch (error) {
@@ -81,25 +92,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     const manageStatusSelect = document.getElementById("manageStatusCourse");
     const statusText = document.getElementById("currentCourseStatus");
     const toggleStatusBtn = document.getElementById("toggleCourseStatusBtn");
+    const updateTeacherSelect = document.getElementById("updateCourseTeacher");
+    const updateTeacherBtn = document.getElementById("updateTeacherBtn");
+    const courseControls = document.getElementById("courseManagementControls");
+    const noCourseMsg = document.getElementById("noCourseSelectedMsg");
 
     if (manageStatusSelect) {
         manageStatusSelect.addEventListener("change", () => {
             const courseId = manageStatusSelect.value;
             if (!courseId) {
-                statusText.textContent = "N/A";
-                toggleStatusBtn.disabled = true;
-                toggleStatusBtn.textContent = "Toggle Status";
+                if (courseControls) courseControls.style.display = "none";
+                if (noCourseMsg) noCourseMsg.style.display = "block";
                 return;
             }
+
+            if (courseControls) courseControls.style.display = "block";
+            if (noCourseMsg) noCourseMsg.style.display = "none";
 
             const course = courses.find(c => c.id === courseId);
             if (course) {
                 const isEnabled = course.isEnabled !== false; // Default to true if undefined
                 statusText.textContent = isEnabled ? "Enabled" : "Disabled";
                 statusText.style.color = isEnabled ? "#28a745" : "#dc3545";
-                toggleStatusBtn.disabled = false;
                 toggleStatusBtn.textContent = isEnabled ? "Disable Course" : "Enable Course";
                 toggleStatusBtn.style.backgroundColor = isEnabled ? "#dc3545" : "#28a745";
+
+                if (updateTeacherSelect) {
+                    updateTeacherSelect.value = course.teacherId || "";
+                }
             }
         });
     }
@@ -146,6 +166,49 @@ document.addEventListener("DOMContentLoaded", async () => {
                 alert("Network error while updating course status.");
             } finally {
                 toggleStatusBtn.disabled = false;
+            }
+        });
+    }
+
+    if (updateTeacherBtn) {
+        updateTeacherBtn.addEventListener("click", async () => {
+            const courseId = manageStatusSelect.value;
+            const newTeacherId = updateTeacherSelect.value;
+            if (!courseId) return;
+
+            const course = courses.find(c => c.id === courseId);
+            const teacher = teachers.find(t => t.id === newTeacherId);
+            const teacherName = teacher ? `${teacher.fname} ${teacher.lname}` : "No Teacher (Clear)";
+
+            if (!confirm(`Are you sure you want to change the teacher for this course to ${teacherName}?`)) return;
+
+            updateTeacherBtn.disabled = true;
+            updateTeacherBtn.textContent = "Updating...";
+
+            try {
+                const response = await fetch(`/api/courses/${courseId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ teacherId: newTeacherId })
+                });
+
+                if (response.ok) {
+                    const updatedCourse = await response.json();
+                    alert("Teacher updated successfully!");
+                    // Update local data
+                    course.teacherId = updatedCourse.teacherId;
+                    course.instructor = updatedCourse.instructor;
+                    console.log("Updated local course data:", course);
+                } else {
+                    const error = await response.json();
+                    alert("Error updating teacher: " + (error.message || "Unknown error"));
+                }
+            } catch (error) {
+                console.error("Error updating teacher:", error);
+                alert("Network error while updating teacher.");
+            } finally {
+                updateTeacherBtn.disabled = false;
+                updateTeacherBtn.textContent = "Update Teacher";
             }
         });
     }

@@ -72,7 +72,8 @@ exports.updateCourse = async (req, res) => {
             section,
             instructor,
             schedule,
-            tas
+            tas,
+            teacherId
         } = req.body;
 
         const courseRef = db.collection("courses").doc(id);
@@ -96,21 +97,62 @@ exports.updateCourse = async (req, res) => {
         if (instructor !== undefined) updatedFields.instructor = String(instructor).trim();
         if (schedule !== undefined) updatedFields.schedule = String(schedule).trim();
         if (tas !== undefined) updatedFields.tas = Array.isArray(tas) ? tas : [];
-
-        const finalCode = updatedFields.code ?? existingCourse.code;
-        const finalName = updatedFields.name ?? existingCourse.name;
-
-        if (!finalCode || !finalName) {
-            return res.status(400).json({ message: "Course code and name are required." });
+        if (teacherId !== undefined) {
+            updatedFields.teacherId = teacherId === null ? "" : String(teacherId).trim();
         }
 
-        await courseRef.update(updatedFields);
+        // If teacherId is changing, we MUST fetch the new instructor name
+        const normalizedOldId = (existingCourse.teacherId || "").trim();
+        const normalizedNewId = (updatedFields.teacherId ?? normalizedOldId).trim();
+
+        if (teacherId !== undefined && normalizedNewId !== normalizedOldId) {
+            console.log(`Teacher change detected for course ${id}: '${normalizedOldId}' -> '${normalizedNewId}'`);
+            
+            if (normalizedNewId) {
+                const newTeacherDoc = await db.collection("teachers").doc(normalizedNewId).get();
+                if (newTeacherDoc.exists) {
+                    const tData = newTeacherDoc.data();
+                    updatedFields.instructor = `${tData.fname || ""} ${tData.lname || ""}`.trim();
+                } else {
+                    console.warn(`New teacher ${normalizedNewId} not found in database.`);
+                }
+            } else {
+                updatedFields.instructor = "";
+            }
+
+            // Execute reassignment with batch for atomicity
+            const batch = db.batch();
+
+            // 1. Remove from old teacher's list
+            if (normalizedOldId) {
+                const oldTeacherRef = db.collection("teachers").doc(normalizedOldId);
+                batch.update(oldTeacherRef, {
+                    teachingClasses: admin.firestore.FieldValue.arrayRemove(id)
+                });
+            }
+
+            // 2. Add to new teacher's list
+            if (normalizedNewId) {
+                const newTeacherRef = db.collection("teachers").doc(normalizedNewId);
+                batch.update(newTeacherRef, {
+                    teachingClasses: admin.firestore.FieldValue.arrayUnion(id)
+                });
+            }
+
+            // 3. Update the course itself
+            batch.update(courseRef, updatedFields);
+            await batch.commit();
+            console.log("Batch teacher update committed.");
+        } else {
+            // Normal update (no teacher change)
+            await courseRef.update(updatedFields);
+        }
 
         const updatedDoc = await courseRef.get();
         res.status(200).json({ id: updatedDoc.id, ...updatedDoc.data() });
     } catch (error) {
         console.error("Error updating course:", error);
-        res.status(500).json({ message: "Internal server error." });
+        res.status(500).json({ message: "Internal server error: " + error.message });
     }
 };
 
@@ -485,6 +527,27 @@ exports.updateAnnouncements = async (req, res) => {
         res.status(200).json({ id: updatedDoc.id, ...updatedDoc.data() });
     } catch (error) {
         console.error("Error updating announcements:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};
+
+exports.unenrollFromCourse = async (req, res) => {
+    if (!db) return res.status(500).json({ message: "Database not initialized." });
+    try {
+        const { courseId, studentId } = req.body;
+        if (!courseId || !studentId) {
+            return res.status(400).json({ message: "Course ID and Student ID are required." });
+        }
+        const admin = require("firebase-admin");
+        await db.collection("courses").doc(courseId).update({
+            studentIds: admin.firestore.FieldValue.arrayRemove(studentId)
+        });
+        await db.collection("students").doc(studentId).update({
+            enrolledCourses: admin.firestore.FieldValue.arrayRemove(courseId)
+        });
+        res.status(200).json({ message: "Unenrolled successfully." });
+    } catch (error) {
+        console.error("Error unenrolling from course:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 };

@@ -144,19 +144,40 @@
                 </div>
             </div>
 
-            <!-- Section 5: Enable/Disable Courses -->
+            <!-- Section 5: Manage Courses -->
             <div class="admin-section">
-                <h3>Manage Course Status</h3>
+                <h3>Course Management</h3>
                 <div class="form-group">
                     <label for="manageStatusCourse">Select Course:</label>
                     <select id="manageStatusCourse">
                         <option value="">Select a Course</option>
                     </select>
                 </div>
-                <div id="courseStatusDisplay" style="margin-bottom: 15px; font-weight: bold;">
-                    Status: <span id="currentCourseStatus">N/A</span>
+                
+                <div id="courseManagementControls" style="display: none;">
+                    <div style="background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                        <h4 style="margin-top: 0; font-size: 0.9rem; color: #666; text-transform: uppercase;">Status Control</h4>
+                        <div id="courseStatusDisplay" style="margin-bottom: 10px; font-weight: bold;">
+                            Current Status: <span id="currentCourseStatus">N/A</span>
+                        </div>
+                        <button id="toggleCourseStatusBtn" class="btn" style="width: 100%; background-color: #6c757d;">Toggle Status</button>
+                    </div>
+
+                    <div style="background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 6px;">
+                        <h4 style="margin-top: 0; font-size: 0.9rem; color: #666; text-transform: uppercase;">Teacher Assignment</h4>
+                        <div class="form-group">
+                            <label for="updateCourseTeacher">Current Instructor:</label>
+                            <select id="updateCourseTeacher">
+                                <option value="">No Teacher (Clear)</option>
+                            </select>
+                        </div>
+                        <button id="updateTeacherBtn" class="btn" style="width: 100%; background-color: #007bff;">Update Teacher</button>
+                    </div>
                 </div>
-                <button id="toggleCourseStatusBtn" class="btn" style="background-color: #6c757d;" disabled>Toggle Status</button>
+                
+                <div id="noCourseSelectedMsg" style="color: #888; text-align: center; padding: 20px;">
+                    Select a course above to manage its status and teacher.
+                </div>
             </div>
         </div>
     </div>

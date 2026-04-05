@@ -29,7 +29,7 @@ router.put("/:id/announcements", courseController.updateAnnouncements);
 //Update course info
 router.put("/:id", courseController.updateCourse);
 
-// Update course status (enable/disable)
+// Update course status 
 router.put("/:id/status", courseController.updateCourseStatus);
 
 module.exports = router;
