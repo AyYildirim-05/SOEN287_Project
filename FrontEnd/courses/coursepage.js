@@ -184,6 +184,7 @@ async function fetchAndRenderAssignments() {
     });
 
     if (typeof applyRoleUI === "function") applyRoleUI();
+    applyAdminAsTeacher();
 
   } catch (error) {
     console.error("Error displaying assignments:", error);
@@ -594,6 +595,7 @@ function renderAnnouncements() {
   });
 
   if (typeof applyRoleUI === "function") applyRoleUI();
+  applyAdminAsTeacher();
 }
 
 

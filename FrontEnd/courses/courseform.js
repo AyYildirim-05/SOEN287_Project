@@ -144,7 +144,7 @@ function setupAddCourseModal() {
 function setupSafeDeleteModal() {
     const userRole = getRole();
 
-    if (userRole !== "teacher") {
+    if (userRole !== "teacher" || userRole !== "admin") {
         document.querySelectorAll(".deleteBtn").forEach(btn => btn.style.display = "none");
         return;
     }
@@ -425,7 +425,7 @@ async function renderCourses() {
         // Show the right button based on role
         const deleteBtn   = card.querySelector(".deleteBtn");
         const unenrollBtn = card.querySelector(".unenrollBtn");
-        if (deleteBtn)   deleteBtn.style.display   = (role === "teacher") ? "block" : "none";
+        if (deleteBtn)   deleteBtn.style.display   = (role === "teacher" || role === "admin") ? "block" : "none";
         if (unenrollBtn) unenrollBtn.style.display = (role === "student") ? "block" : "none";
 
         const refNode = coursesContainer.querySelector(".student-only, .teacher-only");
