@@ -93,6 +93,11 @@ You need to provide your own Firebase service account credentials to connect the
     FIREBASE_SERVICE_ACCOUNT_PATH=./path/to/your/serviceAccountKey.json
     FIREBASE_WEB_API_KEY=YOUR_FIREBASE_API_KEY
 
+    # Option B: Email
+    EMAIL_USER=example@gmai.com # sender email
+    EMAIL_PASS=app_password # not email password
+
+    
     # Optional: Port configuration
     PORT=5500
     ```
