@@ -182,6 +182,16 @@ async function calculateAndDisplayGPA() {
     const gpa = estimateGPA(coursesWithFinals);
     renderGPA(gpa);
     renderGPATable(coursesWithFinals);
+
+    const exportBtn = document.getElementById("exportCsvBtn");
+    if (exportBtn) {
+        exportBtn.onclick = () => exportGradesToCSV(coursesWithFinals);
+    }
+
+    const exportPdfBtn = document.getElementById("exportPdfBtn");
+    if (exportPdfBtn) {
+        exportPdfBtn.onclick = () => exportGradesToPDF(coursesWithFinals, gpa);
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
