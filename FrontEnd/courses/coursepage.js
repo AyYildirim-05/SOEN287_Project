@@ -56,6 +56,12 @@ function renderCourseInfo() {
   document.getElementById("courseCredits").textContent =
     "Credits: " + (courseData.credits || "");
 
+  document.getElementById("courseSection").textContent =
+    "Section: " + (courseData.section || "");
+
+  document.getElementById("courseSchedule").textContent =
+    "Schedule: " + (courseData.schedule || "");
+
   const taText = (courseData.tas && courseData.tas.length > 0)
     ? courseData.tas.join(", ")
     : "None";
@@ -248,7 +254,7 @@ async function drawCoursePageGraph() {
     clearGraphMessage();
 
     const labels = graded.map(a => a.title);
-    const data   = graded.map(a => a.grade);
+    const data = graded.map(a => a.grade);
 
     const backgroundColors = data.map(v => {
       if (v >= 80) return "rgba(74, 222, 128, 0.75)";
@@ -334,8 +340,8 @@ async function drawCoursePageGraph() {
 
     const backgroundColors = rawGrades.map(g => {
       if (g === null) return "rgba(200, 200, 200, 0.75)"; // grey = no grades yet
-      if (g >= 80)   return "rgba(74, 222, 128, 0.75)";
-      if (g >= 60)   return "rgba(251, 191, 36, 0.75)";
+      if (g >= 80) return "rgba(74, 222, 128, 0.75)";
+      if (g >= 60) return "rgba(251, 191, 36, 0.75)";
       return "rgba(248, 113, 113, 0.75)";
     });
     const borderColors = backgroundColors.map(c => c.replace("0.75", "1"));
@@ -395,12 +401,12 @@ async function drawCoursePageGraph() {
    ===================================================== */
 
 function setupGradeModal() {
-  const overlay    = document.getElementById("gradeModalOverlay");
-  const closeBtn   = document.getElementById("closeGradeModalBtn");
-  const cancelBtn  = document.getElementById("cancelGradeBtn");
-  const saveBtn    = document.getElementById("saveGradeBtn");
+  const overlay = document.getElementById("gradeModalOverlay");
+  const closeBtn = document.getElementById("closeGradeModalBtn");
+  const cancelBtn = document.getElementById("cancelGradeBtn");
+  const saveBtn = document.getElementById("saveGradeBtn");
   const scoreInput = document.getElementById("gradeScoreInput");
-  const titleEl    = document.getElementById("gradeModalAssignmentTitle");
+  const titleEl = document.getElementById("gradeModalAssignmentTitle");
 
   if (!overlay) return;
 
@@ -479,29 +485,47 @@ function renderAnnouncements() {
   list.innerHTML = "";
 
   (courseData.announcements || []).forEach((a, index) => {
+    const announcement = typeof a === "string"
+      ? { title: a, description: "" }
+      : a;
+
     const li = document.createElement("li");
+    li.className = "announcementCard";
+
     li.innerHTML = `
-      <div class="announcementRow">
-        <span>${a}</span>
-        <button class="removeAnnouncementBtn teacher-only" data-index="${index}" type="button">Remove</button>
+      <div class="announcementHeader" data-index="${index}">
+        <div class="announcementTitleWrap">
+          <h4 class="announcementTitle">${announcement.title || "Untitled Announcement"}</h4>
+        </div>
+
+        <div class="announcementButtons teacher-only">
+          <button class="editAnnouncementBtn" data-index="${index}" type="button">Edit</button>
+          <button class="removeAnnouncementBtn" data-index="${index}" type="button">Remove</button>
+        </div>
+      </div>
+
+      <div class="announcementDescription hidden" id="announcementDescription-${index}">
+        ${announcement.description ? announcement.description : "No description provided."}
       </div>
     `;
+
     list.appendChild(li);
   });
 
   if (typeof applyRoleUI === "function") applyRoleUI();
 }
 
+
 /* =====================================================
    MODALS
    ===================================================== */
 
 function setupAddAssignmentModal() {
-  const addBtn    = document.getElementById("addAssignmentBtn");
-  const overlay   = document.getElementById("addAssignmentOverlay");
+  const addBtn = document.getElementById("addAssignmentBtn");
+  const overlay = document.getElementById("addAssignmentOverlay");
   const cancelBtn = document.getElementById("cancelAssignmentBtn");
-  const closeBtn  = document.getElementById("closeAssignmentModalBtn");
-  const saveBtn   = document.getElementById("saveAssignmentBtn");
+  const closeBtn = document.getElementById("closeAssignmentModalBtn");
+  const saveBtn = document.getElementById("saveAssignmentBtn");
 
   if (!addBtn || !overlay || !cancelBtn || !saveBtn) return;
 
@@ -518,15 +542,15 @@ function setupAddAssignmentModal() {
   overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
 
   saveBtn.addEventListener("click", async () => {
-    const titleInput   = document.getElementById("assignmentTitle");
+    const titleInput = document.getElementById("assignmentTitle");
     const dueDateInput = document.getElementById("assignmentDue");
-    const weightInput  = document.getElementById("assignmentWeight");
+    const weightInput = document.getElementById("assignmentWeight");
 
     if (!titleInput || !dueDateInput || !weightInput) return;
 
-    const title   = titleInput.value.trim();
+    const title = titleInput.value.trim();
     const dueDate = dueDateInput.value;
-    const weight  = weightInput.value.trim();
+    const weight = weightInput.value.trim();
 
     const userDataString = localStorage.getItem("user");
     let teacherId = "";
@@ -564,21 +588,23 @@ function setupAddAssignmentModal() {
 }
 
 function setupEditCourseInfoModal() {
-  const editBtn   = document.getElementById("editCourseInfoBtn");
-  const overlay   = document.getElementById("editCourseInfoOverlay");
+  const editBtn = document.getElementById("editCourseInfoBtn");
+  const overlay = document.getElementById("editCourseInfoOverlay");
   const cancelBtn = document.getElementById("cancelEditCourseInfoBtn");
-  const closeBtn  = document.getElementById("closeEditCourseInfoBtn");
-  const saveBtn   = document.getElementById("saveCourseInfoBtn");
+  const closeBtn = document.getElementById("closeEditCourseInfoBtn");
+  const saveBtn = document.getElementById("saveCourseInfoBtn");
 
   if (!editBtn || !overlay || !cancelBtn || !saveBtn) return;
 
   const close = () => overlay.classList.add("hidden");
 
   editBtn.addEventListener("click", () => {
-    document.getElementById("editCourseTitle").value      = courseData.name || "";
+    document.getElementById("editCourseTitle").value = courseData.name || "";
     document.getElementById("editCourseInstructor").value = courseData.instructor || "";
-    document.getElementById("editCourseCredits").value    = courseData.credits || "";
-    document.getElementById("editCourseTAs").value        = (courseData.tas || []).join(", ");
+    document.getElementById("editCourseCredits").value = courseData.credits || "";
+    document.getElementById("editCourseSection").value = courseData.section || "";
+    document.getElementById("editCourseSchedule").value = courseData.schedule || "";
+    document.getElementById("editCourseTAs").value = (courseData.tas || []).join(", ");
     overlay.classList.remove("hidden");
     document.getElementById("editCourseTitle").focus();
   });
@@ -588,18 +614,22 @@ function setupEditCourseInfoModal() {
   overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
 
   saveBtn.addEventListener("click", () => {
-    const title      = document.getElementById("editCourseTitle").value.trim();
+    const title = document.getElementById("editCourseTitle").value.trim();
     const instructor = document.getElementById("editCourseInstructor").value.trim();
-    const credits    = document.getElementById("editCourseCredits").value.trim();
+    const credits = document.getElementById("editCourseCredits").value.trim();
+    const section = document.getElementById("editCourseSection").value.trim();
+    const schedule = document.getElementById("editCourseSchedule").value.trim();
 
     if (!title || !instructor || !credits) {
       alert("Please fill all fields.");
       return;
     }
 
-    courseData.name       = title;
+    courseData.name = title;
     courseData.instructor = instructor;
-    courseData.credits    = credits;
+    courseData.credits = credits;
+    courseData.section = section;
+    courseData.schedule = schedule;
 
     renderCourseInfo();
     close();
@@ -607,34 +637,100 @@ function setupEditCourseInfoModal() {
 }
 
 function setupAddAnnouncementModal() {
-  const addBtn    = document.getElementById("addAnnouncementBtn");
-  const overlay   = document.getElementById("addAnnouncementOverlay");
+  const addBtn = document.getElementById("addAnnouncementBtn");
+  const overlay = document.getElementById("addAnnouncementOverlay");
   const cancelBtn = document.getElementById("cancelAnnouncementBtn");
-  const closeBtn  = document.getElementById("closeAnnouncementModalBtn");
-  const saveBtn   = document.getElementById("saveAnnouncementBtn");
+  const closeBtn = document.getElementById("closeAnnouncementModalBtn");
+  const saveBtn = document.getElementById("saveAnnouncementBtn");
 
-  if (!addBtn || !overlay) return;
+  if (!addBtn || !overlay || !cancelBtn || !closeBtn || !saveBtn) return;
 
-  const close = () => overlay.classList.add("hidden");
+  const titleInput = document.getElementById("announcementTitleInput");
+  const descriptionInput = document.getElementById("announcementDescriptionInput");
+  const modalTitle = document.getElementById("announcementModalTitle");
+
+  let editingIndex = null;
+
+  const close = () => {
+    overlay.classList.add("hidden");
+    titleInput.value = "";
+    descriptionInput.value = "";
+    editingIndex = null;
+    modalTitle.textContent = "Add Announcement";
+  };
 
   addBtn.addEventListener("click", () => {
     overlay.classList.remove("hidden");
-    document.getElementById("announcementTextInput").focus();
+    titleInput.focus();
   });
 
   cancelBtn.addEventListener("click", close);
   closeBtn.addEventListener("click", close);
-  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
 
-  saveBtn.addEventListener("click", () => {
-    const text = document.getElementById("announcementTextInput").value.trim();
-    if (!text) { alert("Please enter an announcement."); return; }
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
 
-    courseData.announcements = courseData.announcements || [];
-    courseData.announcements.unshift(text);
-    renderAnnouncements();
-    document.getElementById("announcementTextInput").value = "";
-    close();
+  document.addEventListener("click", (e) => {
+    const editBtn = e.target.closest(".editAnnouncementBtn");
+    if (!editBtn) return;
+
+    const index = Number(editBtn.dataset.index);
+    const announcement = courseData.announcements[index];
+
+    const normalized = typeof announcement === "string"
+      ? { title: announcement, description: "" }
+      : announcement;
+
+    editingIndex = index;
+    titleInput.value = normalized.title || "";
+    descriptionInput.value = normalized.description || "";
+    modalTitle.textContent = "Edit Announcement";
+    overlay.classList.remove("hidden");
+    titleInput.focus();
+  });
+
+  saveBtn.addEventListener("click", async () => {
+    const title = titleInput.value.trim();
+    const description = descriptionInput.value.trim();
+
+    if (!title) {
+      alert("Please enter an announcement title.");
+      return;
+    }
+
+    const newAnnouncement = { title, description };
+
+    if (!Array.isArray(courseData.announcements)) {
+      courseData.announcements = [];
+    }
+
+    if (editingIndex === null) {
+      courseData.announcements.unshift(newAnnouncement);
+    } else {
+      courseData.announcements[editingIndex] = newAnnouncement;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5500/api/courses/${courseId}/announcements`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          announcements: courseData.announcements
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save announcements");
+      }
+
+      courseData = await response.json();
+      renderAnnouncements();
+      close();
+    } catch (error) {
+      console.error("Failed to save announcement:", error);
+      alert("Could not save announcement.");
+    }
   });
 }
 
@@ -643,13 +739,25 @@ function setupAddAnnouncementModal() {
    ===================================================== */
 
 document.addEventListener("click", async (e) => {
+  const announcementHeader = e.target.closest(".announcementHeader");
+  if (announcementHeader && !e.target.closest(".announcementButtons")) {
+    const index = announcementHeader.dataset.index;
+    const descriptionBox = document.getElementById(`announcementDescription-${index}`);
+    if (descriptionBox) {
+      descriptionBox.classList.toggle("hidden");
+    }
+    return;
+  }
+
   const removeAssignmentBtn = e.target.closest(".removeAssignmentBtn");
   if (removeAssignmentBtn) {
     e.preventDefault();
     e.stopPropagation();
     const assignmentId = removeAssignmentBtn.dataset.id;
     try {
-      const res = await fetch(`http://localhost:5500/api/assignments/${assignmentId}`, { method: "DELETE" });
+      const res = await fetch(`http://localhost:5500/api/assignments/${assignmentId}`, {
+        method: "DELETE"
+      });
       if (!res.ok) throw new Error("Failed to delete assignment");
       await fetchAndRenderAssignments();
       await drawCoursePageGraph();
@@ -667,9 +775,9 @@ document.addEventListener("click", async (e) => {
     const index = Number(removeAnnouncementBtn.dataset.index);
     courseData.announcements.splice(index, 1);
     renderAnnouncements();
+    return;
   }
 });
-
 /* =====================================================
    INITIALIZE PAGE
    ===================================================== */
