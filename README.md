@@ -3,13 +3,47 @@
 ## Project Overview
 This is a web application developed as a term project for the **SOEN 287 (Web Programming)** course at Concordia University. The application provides a platform for managing student profiles, course enrollments, and academic performance tracking, featuring a full-stack architecture with a Node.js/Express backend and a Firebase-powered database.
 
-### Key Features
-- **Role-Based Authentication:** Secure sign-up and sign-in functionality for Students, Teachers, and Admins using Firebase Auth.
-- **Course Management:** Ability to view, add, edit, and delete courses.
-- **Assignment Tracker:** Manage assignments with due dates, weights, and completion status.
-- **Interactive Grades Visualization:** Dynamic charts displaying student performance and class averages.
-- **Student Profiles:** Manage student information including major, GPA, and enrolled courses.
-- **User Settings:** Dedicated settings pages for different user roles to manage account details.
+---
+
+## What's in the Project?
+
+The system is a comprehensive management tool designed for three primary user roles: **Students**, **Teachers**, and **Admins**. It combines administrative workflows with academic tracking and data visualization.
+
+### 1. User Roles & Capabilities
+
+#### **Student Experience**
+- **Dashboard:** View a personalized overview of enrolled courses and upcoming assignments.
+- **Course Enrollment:** Search through available courses and enroll in new ones.
+- **Academic Tracking:** 
+  - View course-specific announcements and materials.
+  - Track assignments, view weights, and see due dates.
+  - Mark assignments as completed to move them to an archive.
+  - View individual grades for each assessment.
+- **Performance Visualization:** Access a dynamic GPA estimator and bar charts showing performance across all enrolled courses.
+- **Profile Management:** Update personal information, major, and view academic standing.
+
+#### **Teacher Experience**
+- **Course Creation:** Create new courses, defining codes, names, credits, and descriptions.
+- **Class Management:**
+  - View lists of enrolled students for each course.
+  - Post and manage course-wide announcements.
+  - Create, edit, and delete assignments with specific weights and deadlines.
+- **Grading Suite:**
+  - Grade individual student assignments through a dedicated interface.
+  - View class-wide performance metrics and average grades.
+- **Visualization:** See comparative charts of student performance within their courses.
+
+#### **Admin Experience**
+- **System-Wide Oversight:** Access a global view of all courses, students, and teachers.
+- **Global Analytics:** View comprehensive performance graphs that aggregate data across the entire institution.
+- **Administrative Control:** (Planned) Manage user accounts and system-wide configurations.
+
+### 2. Core Modules
+- **Authentication System:** Secure email/password login and registration powered by Firebase Auth, with role-based redirection.
+- **Course Engine:** A robust backend for managing course metadata, instructor assignments, and student rosters.
+- **Assignment Tracker:** A dynamic scheduler that handles deadlines, weights, and submission status.
+- **Grades & Analytics:** A calculation engine that computes weighted averages and GPAs, paired with a Canvas-based visualization layer.
+- **Settings & Profile:** Dedicated portals for users to manage their identity and preferences within the system.
 
 ---
 
@@ -18,7 +52,7 @@ This is a web application developed as a term project for the **SOEN 287 (Web Pr
 - **Database:** Firebase Firestore (NoSQL)
 - **Authentication:** Firebase Auth
 - **Frontend:** HTML5, CSS3, Vanilla JavaScript
-- **Visualization:** Canvas API / Charting logic
+- **Visualization:** HTML5 Canvas API for custom data charting
 - **Development Tools:** Nodemon, Dotenv, UUID
 
 ---
@@ -28,32 +62,6 @@ Before you begin, ensure you have the following installed:
 - [Node.js](https://nodejs.org/) (v14 or higher recommended)
 - [npm](https://www.npmjs.com/) (usually comes with Node.js)
 - A [Firebase Project](https://console.firebase.google.com/) with Firestore and Authentication enabled.
-
----
-
-## User Guide
-
-### Main Page
-The dashboard provides a central hub for navigating the system. Users can access their course list, track upcoming assignments, and view their performance at a glance. The header allows users to manage their authentication state.
-
-### Course Section
-The courses section displays all courses relevant to the user's role. Each course box contains the course code, name, and instructor.
-- **Teachers** can add new courses, edit existing course information, and delete courses they manage.
-- **Students** can view and enroll in available courses.
-
-Clicking on a course opens its dedicated page, which provides detailed information about:
-- **Course Info:** Title, Instructor, Credits, and TAs.
-- **Assignments:** Add, view, and grade assessments.
-- **Announcements:** Stay updated with course-specific news.
-- **Grades:** Visual representation of performance using interactive charts.
-
-### Assignment Tracker
-This section helps students manage their workload. Assignments can be tracked, marked as completed, and archived. The system tracks due dates and assignment status (completed, late, or pending).
-
-### Grades Visualization
-The system provides a graphical representation of academic performance.
-- **Students** see their individual grades for each course.
-- **Teachers** can view the average performance of their classes and manage individual student results.
 
 ---
 
@@ -119,6 +127,6 @@ Once the server is running, the application will be accessible at:
 - `FrontEnd/`: Static assets including HTML, CSS, and client-side JavaScript.
   - `Auths/`: Sign-in and Sign-up pages.
   - `courses/`: Course management pages and modals.
-  - `Graph/`: Performance visualization scripts.
+  - `Graph/`: Performance visualization and GPA estimation scripts.
   - `schedule/`: Assignment tracking and scheduling logic.
   - `settings/`: Role-specific user settings pages.
