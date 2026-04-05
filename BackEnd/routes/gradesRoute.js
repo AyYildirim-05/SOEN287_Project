@@ -3,10 +3,10 @@ const router = express.Router();
 const { verifyToken } = require("../middleware/authMiddleware");
 const gradesController = require("../controller/gradesController");
 const teacherGradesController = require("../controller/teacherGradesController");
+const adminGradesController = require("../controller/adminGradesController");
 
-// GET /api/grades/my-courses
-// Returns enrolled courses with assignment completion stats for the logged-in student
 router.get("/my-courses", verifyToken, gradesController.getStudentCoursesForGraph);
 router.get("/teacher-overview", verifyToken, teacherGradesController.getTeacherCoursesForGraph);
+router.get("/admin-overview/all", verifyToken, adminGradesController.getAllCoursesGradesForAdmin);
  
 module.exports = router;
