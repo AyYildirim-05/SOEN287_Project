@@ -1,189 +1,27 @@
-const { db, admin } = require("../database/firebase");
-
-//Create template
-function buildCourseTemplate(templateName, code, name) {
-    switch ((templateName || "").toLowerCase()) {
-        case "programming":
-            return {
-                description: `Welcome to ${code} - ${name}. This course includes programming assignments and project-based work.`,
-                tas: [],
-                announcements: [
-                    {
-                        title: "Welcome",
-                        description: "Welcome to the course. Please review the syllabus and schedule."
-                    },
-                    {
-                        title: "Getting Started",
-                        description: "Make sure you have access to the course materials and required software."
-                    }
-                ],
-                assignments: []
-            };
-
-        case "theory":
-            return {
-                description: `Welcome to ${code} - ${name}. This course focuses on theoretical concepts, readings, and evaluations.`,
-                tas: [],
-                announcements: [
-                    {
-                        title: "Welcome",
-                        description: "Welcome to the course. Please read the outline carefully."
-                    }
-                ],
-                assignments: []
-            };
-
-        case "lab":
-            return {
-                description: `Welcome to ${code} - ${name}. This course includes lab work and practical exercises.`,
-                tas: [],
-                announcements: [
-                    {
-                        title: "Lab Preparation",
-                        description: "Please bring your materials and review the lab instructions before each session."
-                    }
-                ],
-                assignments: []
-            };
-
-        default:
-            return {
-                description: "",
-                tas: [],
-                announcements: [],
-                assignments: []
-            };
-    }
-}
-
-// Update course info
-exports.updateCourse = async (req, res) => {
-    if (!db) {
-        return res.status(500).json({ message: "Database not initialized." });
-    }
-
-    try {
-        const { id } = req.params;
-        const {
-            code,
-            name,
-            description,
-            credits,
-            section,
-            instructor,
-            schedule,
-            tas
-        } = req.body;
-
-        const courseRef = db.collection("courses").doc(id);
-        const courseDoc = await courseRef.get();
-
-        if (!courseDoc.exists) {
-            return res.status(404).json({ message: "Course not found." });
-        }
-
-        const existingCourse = courseDoc.data();
-
-        const updatedFields = {
-            updatedAt: new Date()
-        };
-
-        if (code !== undefined) updatedFields.code = String(code).trim().toUpperCase();
-        if (name !== undefined) updatedFields.name = String(name).trim();
-        if (description !== undefined) updatedFields.description = String(description).trim();
-        if (credits !== undefined) updatedFields.credits = String(credits).trim();
-        if (section !== undefined) updatedFields.section = String(section).trim();
-        if (instructor !== undefined) updatedFields.instructor = String(instructor).trim();
-        if (schedule !== undefined) updatedFields.schedule = String(schedule).trim();
-        if (tas !== undefined) updatedFields.tas = Array.isArray(tas) ? tas : [];
-
-        const finalCode = updatedFields.code ?? existingCourse.code;
-        const finalName = updatedFields.name ?? existingCourse.name;
-
-        if (!finalCode || !finalName) {
-            return res.status(400).json({ message: "Course code and name are required." });
-        }
-
-        await courseRef.update(updatedFields);
-
-        const updatedDoc = await courseRef.get();
-        res.status(200).json({ id: updatedDoc.id, ...updatedDoc.data() });
-    } catch (error) {
-        console.error("Error updating course:", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-};
+const { db } = require("../database/firebase");
 
 // Add a new course
 exports.addCourse = async (req, res) => {
-    if (!db) {
-        return res.status(500).json({ message: "Database not initialized." });
-    }
-
+    if (!db) return res.status(500).json({ message: "Database not initialized." });
     try {
-        const {
-            code,
-            name,
-            description,
-            credits,
-            section,
-            instructor,
-            schedule,
-            teacherId,
-            template
-        } = req.body;
+        const { code, name, description, credits, section, instructor, schedule, teacherId } = req.body;
 
-        // Start with submitted values
-        let finalCode = code ? code.trim() : "";
-        let finalName = name ? name.trim() : "";
-        let finalCredits = credits ? String(credits).trim() : "";
-        let finalSection = section ? section.trim() : "";
-        let finalInstructor = instructor ? instructor.trim() : "";
-        let finalSchedule = schedule ? schedule.trim() : "";
-
-        // Fill defaults if a template was selected
-        if (template === "programming") {
-            finalCode = finalCode || "SOEN287";
-            finalName = finalName || "Web Programming";
-            finalCredits = finalCredits || "3";
-            finalSection = finalSection || "AA";
-            finalSchedule = finalSchedule || "Monday 10:15 - 12:45";
-        } else if (template === "theory") {
-            finalCode = finalCode || "COMP232";
-            finalName = finalName || "Mathematics for Computer Science";
-            finalCredits = finalCredits || "3";
-            finalSection = finalSection || "AA";
-            finalSchedule = finalSchedule || "Tuesday 14:00 - 16:30";
-        } else if (template === "lab") {
-            finalCode = finalCode || "SOEN228";
-            finalName = finalName || "System Hardware";
-            finalCredits = finalCredits || "3";
-            finalSection = finalSection || "AB";
-            finalSchedule = finalSchedule || "Wednesday 13:15 - 15:45";
-        }
-
-        // Validate after template defaults are applied
-        if (!finalCode || !finalName) {
+        if (!code || !name) {
             return res.status(400).json({ message: "Course code and name are required." });
         }
 
-        const templateData = buildCourseTemplate(template, finalCode.toUpperCase(), finalName);
-
         const newCourse = {
-            code: finalCode.toUpperCase(),
-            name: finalName,
-            description: description || templateData.description || "",
-            credits: finalCredits || "",
-            section: finalSection || "",
-            instructor: finalInstructor || "",
-            schedule: finalSchedule || "",
+            code: code.toUpperCase(),
+            name,
+            description: description || "",
+            credits: credits || "",
+            section: section || "",
+            instructor: instructor || "",
+            schedule: schedule || "",
             teacherId: teacherId || "",
             studentIds: [],
-            tas: templateData.tas || [],
-            assignments: templateData.assignments || [],
-            announcements: templateData.announcements || [],
-            template: template || "",
-            isEnabled: true,
+            assignments: [],
+            announcements: [],
             createdAt: new Date(),
             updatedAt: new Date()
         };
@@ -191,11 +29,11 @@ exports.addCourse = async (req, res) => {
         const docRef = await db.collection("courses").add(newCourse);
         const courseId = docRef.id;
 
-        // Add course to teacher's teachingClasses
         if (teacherId) {
             const teacherRef = db.collection("teachers").doc(teacherId);
             const teacherDoc = await teacherRef.get();
             if (teacherDoc.exists) {
+                const admin = require("firebase-admin");
                 await teacherRef.update({
                     teachingClasses: admin.firestore.FieldValue.arrayUnion(courseId)
                 });
@@ -211,9 +49,7 @@ exports.addCourse = async (req, res) => {
 
 // Get all courses
 exports.getAllCourses = async (req, res) => {
-    if (!db) {
-        return res.status(500).json({ message: "Database not initialized." });
-    }
+    if (!db) return res.status(500).json({ message: "Database not initialized." });
     try {
         const snapshot = await db.collection("courses").get();
         const courses = [];
@@ -229,9 +65,7 @@ exports.getAllCourses = async (req, res) => {
 
 // Delete a course
 exports.deleteCourse = async (req, res) => {
-    if (!db) {
-        return res.status(500).json({ message: "Database not initialized." });
-    }
+    if (!db) return res.status(500).json({ message: "Database not initialized." });
     try {
         const { id } = req.params;
         const courseRef = db.collection("courses").doc(id);
@@ -242,15 +76,14 @@ exports.deleteCourse = async (req, res) => {
         }
 
         const { teacherId, studentIds } = courseDoc.data();
+        const admin = require("firebase-admin");
 
-        // Remove from teacher
         if (teacherId) {
             await db.collection("teachers").doc(teacherId).update({
                 teachingClasses: admin.firestore.FieldValue.arrayRemove(id)
             });
         }
 
-        // Remove from all enrolled students
         if (studentIds && studentIds.length > 0) {
             const batch = db.batch();
             studentIds.forEach(sid => {
@@ -272,9 +105,7 @@ exports.deleteCourse = async (req, res) => {
 
 // Enroll a student in a course
 exports.enrollInCourse = async (req, res) => {
-    if (!db) {
-        return res.status(500).json({ message: "Database not initialized." });
-    }
+    if (!db) return res.status(500).json({ message: "Database not initialized." });
     try {
         const { courseId, studentId } = req.body;
 
@@ -282,21 +113,12 @@ exports.enrollInCourse = async (req, res) => {
             return res.status(400).json({ message: "Course ID and Student ID are required." });
         }
 
-        // Check if course is enabled
-        const courseDoc = await db.collection("courses").doc(courseId).get();
-        if (!courseDoc.exists) {
-            return res.status(404).json({ message: "Course not found." });
-        }
-        if (courseDoc.data().isEnabled === false) {
-            return res.status(403).json({ message: "This course is currently disabled for registration." });
-        }
+        const admin = require("firebase-admin");
 
-        // Update course
         await db.collection("courses").doc(courseId).update({
             studentIds: admin.firestore.FieldValue.arrayUnion(studentId)
         });
 
-        // Update student
         await db.collection("students").doc(studentId).update({
             enrolledCourses: admin.firestore.FieldValue.arrayUnion(courseId)
         });
@@ -308,44 +130,9 @@ exports.enrollInCourse = async (req, res) => {
     }
 };
 
-// Toggle course enabled/disabled status
-exports.updateCourseStatus = async (req, res) => {
-    if (!db) {
-        return res.status(500).json({ message: "Database not initialized." });
-    }
-
-    try {
-        const { id } = req.params;
-        const { isEnabled } = req.body;
-
-        if (typeof isEnabled !== "boolean") {
-            return res.status(400).json({ message: "isEnabled must be a boolean." });
-        }
-
-        const courseRef = db.collection("courses").doc(id);
-        const courseDoc = await courseRef.get();
-
-        if (!courseDoc.exists) {
-            return res.status(404).json({ message: "Course not found." });
-        }
-
-        await courseRef.update({
-            isEnabled,
-            updatedAt: new Date()
-        });
-
-        res.status(200).json({ message: `Course ${isEnabled ? 'enabled' : 'disabled'} successfully.` });
-    } catch (error) {
-        console.error("Error updating course status:", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-};
-
 // Unenroll a student from a course
 exports.unenrollFromCourse = async (req, res) => {
-    if (!db) {
-        return res.status(500).json({ message: "Database not initialized." });
-    }
+    if (!db) return res.status(500).json({ message: "Database not initialized." });
     try {
         const { courseId, studentId } = req.body;
 
@@ -353,12 +140,14 @@ exports.unenrollFromCourse = async (req, res) => {
             return res.status(400).json({ message: "Course ID and Student ID are required." });
         }
 
-        // Update course
+        const admin = require("firebase-admin");
+
+        // Remove student from course's studentIds array
         await db.collection("courses").doc(courseId).update({
             studentIds: admin.firestore.FieldValue.arrayRemove(studentId)
         });
 
-        // Update student
+        // Remove course from student's enrolledCourses array
         await db.collection("students").doc(studentId).update({
             enrolledCourses: admin.firestore.FieldValue.arrayRemove(courseId)
         });
@@ -370,41 +159,8 @@ exports.unenrollFromCourse = async (req, res) => {
     }
 };
 
-// Remove teacher from a course
-exports.removeTeacherFromCourse = async (req, res) => {
-    if (!db) {
-        return res.status(500).json({ message: "Database not initialized." });
-    }
-    try {
-        const { courseId, teacherId } = req.body;
-
-        if (!courseId || !teacherId) {
-            return res.status(400).json({ message: "Course ID and Teacher ID are required." });
-        }
-
-        // Update course - set teacherId to empty string and instructor name to empty
-        await db.collection("courses").doc(courseId).update({
-            teacherId: "",
-            instructor: ""
-        });
-
-        // Update teacher
-        await db.collection("teachers").doc(teacherId).update({
-            teachingClasses: admin.firestore.FieldValue.arrayRemove(courseId)
-        });
-
-        res.status(200).json({ message: "Teacher removed from course successfully." });
-    } catch (error) {
-        console.error("Error removing teacher from course:", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-};
-
 exports.getCourseById = async (req, res) => {
-    if (!db) {
-        return res.status(500).json({ message: "Database not initialized." });
-    }
-
+    if (!db) return res.status(500).json({ message: "Database not initialized." });
     try {
         const { id } = req.params;
         const doc = await db.collection("courses").doc(id).get();
@@ -420,7 +176,6 @@ exports.getCourseById = async (req, res) => {
     }
 };
 
-// Get students and teacher for a specific course
 exports.getPeopleInCourse = async (req, res) => {
     try {
         const { id } = req.params;
@@ -436,7 +191,9 @@ exports.getPeopleInCourse = async (req, res) => {
 
         const students = [];
         if (studentIds.length > 0) {
-            const studentSnapshots = await db.collection("students").where("uid", "in", studentIds.slice(0, 30)).get();
+            const studentSnapshots = await db.collection("students")
+                .where("uid", "in", studentIds.slice(0, 30))
+                .get();
             studentSnapshots.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
         }
 
@@ -451,40 +208,6 @@ exports.getPeopleInCourse = async (req, res) => {
         res.status(200).json({ students, teacher });
     } catch (error) {
         console.error("Error getting people in course:", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-};
-
-// Save announcements
-exports.updateAnnouncements = async (req, res) => {
-    if (!db) {
-        return res.status(500).json({ message: "Database not initialized." });
-    }
-
-    try {
-        const { id } = req.params;
-        const { announcements } = req.body;
-
-        if (!Array.isArray(announcements)) {
-            return res.status(400).json({ message: "Announcements must be an array." });
-        }
-
-        const courseRef = db.collection("courses").doc(id);
-        const courseDoc = await courseRef.get();
-
-        if (!courseDoc.exists) {
-            return res.status(404).json({ message: "Course not found." });
-        }
-
-        await courseRef.update({
-            announcements,
-            updatedAt: new Date()
-        });
-
-        const updatedDoc = await courseRef.get();
-        res.status(200).json({ id: updatedDoc.id, ...updatedDoc.data() });
-    } catch (error) {
-        console.error("Error updating announcements:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 };

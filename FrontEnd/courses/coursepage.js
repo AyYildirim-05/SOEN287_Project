@@ -10,22 +10,17 @@ let courseData = null;
    ===================================================== */
 
 async function loadCourseFromBackend() {
-  if (!courseId) {
-    console.error("No course ID in URL.");
-    return;
-  }
+  if (!courseId) { console.error("No course ID in URL."); return; }
 
   try {
     const res = await fetch(`http://localhost:5500/api/courses/${courseId}`);
     if (!res.ok) throw new Error("Failed to load course.");
-
     courseData = await res.json();
 
     renderCourseInfo();
     await fetchAndRenderAssignments();
     renderAnnouncements();
-    await drawCoursePageGraph(); // replaces the old hardcoded drawGradesChart()
-
+    await drawCoursePageGraph();
   } catch (error) {
     console.error("Error loading course:", error);
   }
@@ -38,34 +33,15 @@ async function loadHtmlIntoBody(path) {
   document.body.insertAdjacentHTML("beforeend", html);
 }
 
-function getCourseInfoKey() {
-  return `courseInfo:${courseId}`;
-}
-
 /* =====================================================
    COURSE INFO
    ===================================================== */
 
 function renderCourseInfo() {
-  document.getElementById("courseTitle").textContent =
-    courseData.name || courseData.code || "";
-
-  document.getElementById("courseInstructor").textContent =
-    "Instructor: " + (courseData.instructor || "");
-
-  document.getElementById("courseCredits").textContent =
-    "Credits: " + (courseData.credits || "");
-
-  document.getElementById("courseSection").textContent =
-    "Section: " + (courseData.section || "");
-
-  document.getElementById("courseSchedule").textContent =
-    "Schedule: " + (courseData.schedule || "");
-
-  const taText = (courseData.tas && courseData.tas.length > 0)
-    ? courseData.tas.join(", ")
-    : "None";
-
+  document.getElementById("courseTitle").textContent = courseData.name || courseData.code || "";
+  document.getElementById("courseInstructor").textContent = "Instructor: " + (courseData.instructor || "");
+  document.getElementById("courseCredits").textContent = "Credits: " + (courseData.credits || "");
+  const taText = (courseData.tas && courseData.tas.length > 0) ? courseData.tas.join(", ") : "None";
   document.getElementById("courseTAs").textContent = "TAs: " + taText;
 }
 
@@ -81,9 +57,11 @@ async function fetchAndRenderAssignments() {
 
   const userDataString = localStorage.getItem("user");
   let studentId = null;
+  let role = "student";
   if (userDataString) {
     const userData = JSON.parse(userDataString);
-    studentId = userData.uid || userData._id || null;
+    studentId = userData.uid || null;
+    role = userData.role || "student";
   }
 
   try {
@@ -107,10 +85,7 @@ async function fetchAndRenderAssignments() {
       const existingGrade = a.grades && studentId && a.grades[studentId] !== undefined
         ? a.grades[studentId]
         : null;
-
-      const gradeDisplayText = existingGrade !== null
-        ? `Grade: ${existingGrade}%`
-        : "No grade yet";
+      const gradeDisplayText = existingGrade !== null ? `Grade: ${existingGrade}%` : "No grade yet";
 
       const box = document.createElement("div");
       box.className = "assignmentBox";
@@ -143,18 +118,31 @@ async function fetchAndRenderAssignments() {
             </button>
           </div>
 
-          <button class="removeAssignmentBtn teacher-only" data-id="${a.id}" type="button">Remove</button>
+          <div class="teacher-only">
+            <button
+              class="editAssignmentBtn"
+              type="button"
+              data-id="${a.id}"
+              data-title="${a.title.replace(/"/g, '&quot;')}"
+              data-due="${a.dueDate ? new Date(a.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}"
+              data-weight="${a.weight || ""}"
+              data-description="${(a.description || "").replace(/"/g, '&quot;')}"
+            >
+              Edit
+            </button>
+            <button class="removeAssignmentBtn" data-id="${a.id}" type="button">Remove</button>
+          </div>
         </div>
       `;
 
       container.appendChild(box);
     });
 
+    // Completion checkboxes
     document.querySelectorAll(".completion-checkbox").forEach(checkbox => {
       checkbox.addEventListener("change", async (e) => {
         const assignmentId = e.target.getAttribute("data-id");
         const isChecked = e.target.checked;
-
         try {
           const res = await fetch("http://localhost:5500/api/assignments/toggle-completion", {
             method: "POST",
@@ -186,11 +174,9 @@ async function drawCoursePageGraph() {
   const canvas = document.getElementById("gradesCanvas");
   if (!canvas) return;
 
-  const ctx = canvas.getContext("2d");
-  const token = localStorage.getItem("token");
+  const token  = localStorage.getItem("token");
   const userStr = localStorage.getItem("user");
 
-  // Helper: draw a status message as a DOM element (avoids blurry canvas text)
   function showGraphMessage(text, color = "#aaa") {
     const existing = canvas.parentElement.querySelector(".graph-status-msg");
     if (existing) existing.remove();
@@ -208,20 +194,16 @@ async function drawCoursePageGraph() {
     canvas.style.display = "";
   }
 
-  if (!token || !userStr) {
-    showGraphMessage("Log in to see grades.");
-    return;
-  }
+  if (!token || !userStr) { showGraphMessage("Log in to see grades."); return; }
 
   const user = JSON.parse(userStr);
 
-  // Destroy any previous chart before drawing a new one
   if (window._coursePageChartInstance) {
     window._coursePageChartInstance.destroy();
     window._coursePageChartInstance = null;
   }
 
-  // ── STUDENT: one bar per assignment in this course ──────────────
+  // ── STUDENT: one bar per assignment ──────────────────────────────
   if (user.role === "student") {
     showGraphMessage("Loading your grades\u2026");
 
@@ -238,30 +220,20 @@ async function drawCoursePageGraph() {
       return;
     }
 
-    if (!assignments.length) {
-      showGraphMessage("No assignments in this course yet.");
-      return;
-    }
-
-    // Only show assignments that have a grade entered
     const graded = assignments.filter(a => a.grade !== null);
 
-    if (!graded.length) {
-      showGraphMessage("No grades entered yet.");
-      return;
-    }
+    if (!graded.length) { showGraphMessage("No grades entered yet."); return; }
 
     clearGraphMessage();
 
     const labels = graded.map(a => a.title);
-    const data = graded.map(a => a.grade);
+    const data   = graded.map(a => a.grade);
 
     const backgroundColors = data.map(v => {
       if (v >= 80) return "rgba(74, 222, 128, 0.75)";
       if (v >= 60) return "rgba(251, 191, 36, 0.75)";
       return "rgba(248, 113, 113, 0.75)";
     });
-    const borderColors = backgroundColors.map(c => c.replace("0.75", "1"));
 
     window._coursePageChartInstance = new Chart(canvas, {
       type: "bar",
@@ -271,7 +243,7 @@ async function drawCoursePageGraph() {
           label: "Your Grade (%)",
           data,
           backgroundColor: backgroundColors,
-          borderColor: borderColors,
+          borderColor: backgroundColors.map(c => c.replace("0.75", "1")),
           borderWidth: 1.5,
           borderRadius: 6,
         }]
@@ -292,15 +264,11 @@ async function drawCoursePageGraph() {
         },
         scales: {
           y: {
-            beginAtZero: true,
-            max: 100,
+            beginAtZero: true, max: 100,
             ticks: { callback: v => v + "%", font: { family: "Trebuchet MS", size: 11 } },
             grid: { color: "rgba(0,0,0,0.06)" }
           },
-          x: {
-            ticks: { font: { family: "Trebuchet MS", size: 11 } },
-            grid: { display: false }
-          }
+          x: { ticks: { font: { family: "Trebuchet MS", size: 11 } }, grid: { display: false } }
         }
       }
     });
@@ -308,7 +276,7 @@ async function drawCoursePageGraph() {
     return;
   }
 
-  // ── TEACHER + ADMIN: one bar per student in this course ─────────
+  // ── TEACHER + ADMIN: one bar per student ─────────────────────────
   if (user.role === "teacher" || user.role === "admin") {
     showGraphMessage("Loading student grades\u2026");
 
@@ -327,34 +295,27 @@ async function drawCoursePageGraph() {
 
     const { students } = data;
 
-    if (!students || !students.length) {
-      showGraphMessage("No students enrolled in this course yet.");
-      return;
-    }
+    if (!students || !students.length) { showGraphMessage("No students enrolled in this course yet."); return; }
 
     clearGraphMessage();
 
-    const labels = students.map(s => s.name);
-    const gradeData = students.map(s => s.courseGrade ?? 0);
     const rawGrades = students.map(s => s.courseGrade);
-
     const backgroundColors = rawGrades.map(g => {
-      if (g === null) return "rgba(200, 200, 200, 0.75)"; // grey = no grades yet
-      if (g >= 80) return "rgba(74, 222, 128, 0.75)";
-      if (g >= 60) return "rgba(251, 191, 36, 0.75)";
+      if (g === null) return "rgba(200, 200, 200, 0.75)";
+      if (g >= 80)   return "rgba(74, 222, 128, 0.75)";
+      if (g >= 60)   return "rgba(251, 191, 36, 0.75)";
       return "rgba(248, 113, 113, 0.75)";
     });
-    const borderColors = backgroundColors.map(c => c.replace("0.75", "1"));
 
     window._coursePageChartInstance = new Chart(canvas, {
       type: "bar",
       data: {
-        labels,
+        labels: students.map(s => s.name),
         datasets: [{
           label: "Student Average (%)",
-          data: gradeData,
+          data: rawGrades.map(g => g ?? 0),
           backgroundColor: backgroundColors,
-          borderColor: borderColors,
+          borderColor: backgroundColors.map(c => c.replace("0.75", "1")),
           borderWidth: 1.5,
           borderRadius: 6,
           _rawGrades: rawGrades
@@ -377,23 +338,15 @@ async function drawCoursePageGraph() {
         },
         scales: {
           y: {
-            beginAtZero: true,
-            max: 100,
+            beginAtZero: true, max: 100,
             ticks: { callback: v => v + "%", font: { family: "Trebuchet MS", size: 11 } },
             grid: { color: "rgba(0,0,0,0.06)" }
           },
-          x: {
-            ticks: { font: { family: "Trebuchet MS", size: 11 } },
-            grid: { display: false }
-          }
+          x: { ticks: { font: { family: "Trebuchet MS", size: 11 } }, grid: { display: false } }
         }
       }
     });
-
-    return;
   }
-
-  showGraphMessage("Grade graph not available for this role.");
 }
 
 /* =====================================================
@@ -401,22 +354,18 @@ async function drawCoursePageGraph() {
    ===================================================== */
 
 function setupGradeModal() {
-  const overlay = document.getElementById("gradeModalOverlay");
-  const closeBtn = document.getElementById("closeGradeModalBtn");
-  const cancelBtn = document.getElementById("cancelGradeBtn");
-  const saveBtn = document.getElementById("saveGradeBtn");
+  const overlay    = document.getElementById("gradeModalOverlay");
+  const closeBtn   = document.getElementById("closeGradeModalBtn");
+  const cancelBtn  = document.getElementById("cancelGradeBtn");
+  const saveBtn    = document.getElementById("saveGradeBtn");
   const scoreInput = document.getElementById("gradeScoreInput");
-  const titleEl = document.getElementById("gradeModalAssignmentTitle");
+  const titleEl    = document.getElementById("gradeModalAssignmentTitle");
 
   if (!overlay) return;
 
   let activeAssignmentId = null;
 
-  const close = () => {
-    overlay.classList.add("hidden");
-    scoreInput.value = "";
-    activeAssignmentId = null;
-  };
+  const close = () => { overlay.classList.add("hidden"); scoreInput.value = ""; activeAssignmentId = null; };
 
   closeBtn.addEventListener("click", close);
   cancelBtn.addEventListener("click", close);
@@ -425,7 +374,6 @@ function setupGradeModal() {
   document.addEventListener("click", (e) => {
     const btn = e.target.closest(".enterGradeBtn");
     if (!btn) return;
-
     activeAssignmentId = btn.dataset.id;
     titleEl.textContent = btn.dataset.title;
     scoreInput.value = btn.dataset.current;
@@ -435,7 +383,6 @@ function setupGradeModal() {
 
   saveBtn.addEventListener("click", async () => {
     const score = Number(scoreInput.value);
-
     if (scoreInput.value === "" || isNaN(score) || score < 0 || score > 100) {
       alert("Please enter a score between 0 and 100.");
       return;
@@ -446,16 +393,12 @@ function setupGradeModal() {
     try {
       const res = await fetch("http://localhost:5500/api/assignments/grade", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ assignmentId: activeAssignmentId, score })
       });
 
       if (!res.ok) throw new Error("Failed to save grade.");
 
-      // Update grade display on the card
       const gradeDisplay = document.getElementById(`gradeDisplay-${activeAssignmentId}`);
       if (gradeDisplay) gradeDisplay.textContent = `Grade: ${score}%`;
 
@@ -463,13 +406,79 @@ function setupGradeModal() {
       if (btn) btn.dataset.current = score;
 
       close();
-
-      // Refresh the graph with the new grade
       await drawCoursePageGraph();
-
     } catch (err) {
       console.error("Error saving grade:", err);
       alert("Could not save grade. Please try again.");
+    }
+  });
+}
+
+/* =====================================================
+   EDIT ASSIGNMENT MODAL (teacher-only) 
+   ===================================================== */
+
+function setupEditAssignmentModal() {
+  const overlay = document.getElementById("editAssignmentOverlay");
+  const closeBtn = document.getElementById("closeEditAssignmentModalBtn");
+  const cancelBtn = document.getElementById("cancelEditAssignmentBtn");
+  const saveBtn = document.getElementById("saveEditAssignmentBtn");
+  const titleInput = document.getElementById("editAssignmentTitle");
+  const dueInput = document.getElementById("editAssignmentDue");
+  const weightInput = document.getElementById("editAssignmentWeight");
+  const descInput = document.getElementById("editAssignmentDescription");
+
+  if (!overlay) return;
+
+  let activeAssignmentId = null;
+
+  const close = () => { overlay.classList.add("hidden"); activeAssignmentId = null; };
+
+  closeBtn.addEventListener("click", close);
+  cancelBtn.addEventListener("click", close);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+
+  // Open modal pre-filled with current values when Edit is clicked
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".editAssignmentBtn");
+    if (!btn) return;
+
+    activeAssignmentId = btn.dataset.id;
+    titleInput.value = btn.dataset.title || "";
+    dueInput.value = btn.dataset.due || "";
+    weightInput.value = btn.dataset.weight || "";
+    descInput.value =  btn.dataset.description || "";
+
+    overlay.classList.remove("hidden");
+    titleInput.focus();
+  });
+
+  saveBtn.addEventListener("click", async () => {
+    const title       = titleInput.value.trim();
+    const dueDate     = dueInput.value.trim();
+    const weight      = weightInput.value.trim();
+    const description = descInput.value.trim();
+
+    if (!title || !dueDate) {
+      alert("Please fill out at least the title and due date.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:5500/api/assignments/${activeAssignmentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, dueDate, weight, description })
+      });
+
+      if (!res.ok) throw new Error("Failed to update assignment.");
+
+      close();
+      await fetchAndRenderAssignments(); // Refresh assignment list
+      await drawCoursePageGraph();
+    } catch (err) {
+      console.error("Error editing assignment:", err);
+      alert("Could not update assignment. Please try again.");
     }
   });
 }
@@ -485,39 +494,21 @@ function renderAnnouncements() {
   list.innerHTML = "";
 
   (courseData.announcements || []).forEach((a, index) => {
-    const announcement = typeof a === "string"
-      ? { title: a, description: "" }
-      : a;
-
     const li = document.createElement("li");
-    li.className = "announcementCard";
-
     li.innerHTML = `
-      <div class="announcementHeader" data-index="${index}">
-        <div class="announcementTitleWrap">
-          <h4 class="announcementTitle">${announcement.title || "Untitled Announcement"}</h4>
-        </div>
-
-        <div class="announcementButtons teacher-only">
-          <button class="editAnnouncementBtn" data-index="${index}" type="button">Edit</button>
-          <button class="removeAnnouncementBtn" data-index="${index}" type="button">Remove</button>
-        </div>
-      </div>
-
-      <div class="announcementDescription hidden" id="announcementDescription-${index}">
-        ${announcement.description ? announcement.description : "No description provided."}
+      <div class="announcementRow">
+        <span>${a}</span>
+        <button class="removeAnnouncementBtn teacher-only" data-index="${index}" type="button">Remove</button>
       </div>
     `;
-
     list.appendChild(li);
   });
 
   if (typeof applyRoleUI === "function") applyRoleUI();
 }
 
-
 /* =====================================================
-   MODALS
+   MODALS: Add Assignment + Edit Course Info + Announcements
    ===================================================== */
 
 function setupAddAssignmentModal() {
@@ -556,13 +547,10 @@ function setupAddAssignmentModal() {
     let teacherId = "";
     if (userDataString) {
       const userData = JSON.parse(userDataString);
-      teacherId = userData.uid || userData._id || "";
+      teacherId = userData.uid || "";
     }
 
-    if (!title || !dueDate) {
-      alert("Please fill out both the title and due date.");
-      return;
-    }
+    if (!title || !dueDate) { alert("Please fill out both the title and due date."); return; }
 
     try {
       const response = await fetch("http://localhost:5500/api/assignments/add", {
@@ -572,9 +560,7 @@ function setupAddAssignmentModal() {
       });
 
       if (response.ok) {
-        titleInput.value = "";
-        dueDateInput.value = "";
-        weightInput.value = "";
+        titleInput.value = ""; dueDateInput.value = ""; weightInput.value = "";
         close();
         await fetchAndRenderAssignments();
         await drawCoursePageGraph();
@@ -602,8 +588,6 @@ function setupEditCourseInfoModal() {
     document.getElementById("editCourseTitle").value = courseData.name || "";
     document.getElementById("editCourseInstructor").value = courseData.instructor || "";
     document.getElementById("editCourseCredits").value = courseData.credits || "";
-    document.getElementById("editCourseSection").value = courseData.section || "";
-    document.getElementById("editCourseSchedule").value = courseData.schedule || "";
     document.getElementById("editCourseTAs").value = (courseData.tas || []).join(", ");
     overlay.classList.remove("hidden");
     document.getElementById("editCourseTitle").focus();
@@ -617,20 +601,10 @@ function setupEditCourseInfoModal() {
     const title = document.getElementById("editCourseTitle").value.trim();
     const instructor = document.getElementById("editCourseInstructor").value.trim();
     const credits = document.getElementById("editCourseCredits").value.trim();
-    const section = document.getElementById("editCourseSection").value.trim();
-    const schedule = document.getElementById("editCourseSchedule").value.trim();
 
-    if (!title || !instructor || !credits) {
-      alert("Please fill all fields.");
-      return;
-    }
+    if (!title || !instructor || !credits) { alert("Please fill all fields."); return; }
 
-    courseData.name = title;
-    courseData.instructor = instructor;
-    courseData.credits = credits;
-    courseData.section = section;
-    courseData.schedule = schedule;
-
+    courseData.name = title; courseData.instructor = instructor; courseData.credits = credits;
     renderCourseInfo();
     close();
   });
@@ -643,94 +617,27 @@ function setupAddAnnouncementModal() {
   const closeBtn = document.getElementById("closeAnnouncementModalBtn");
   const saveBtn = document.getElementById("saveAnnouncementBtn");
 
-  if (!addBtn || !overlay || !cancelBtn || !closeBtn || !saveBtn) return;
+  if (!addBtn || !overlay) return;
 
-  const titleInput = document.getElementById("announcementTitleInput");
-  const descriptionInput = document.getElementById("announcementDescriptionInput");
-  const modalTitle = document.getElementById("announcementModalTitle");
-
-  let editingIndex = null;
-
-  const close = () => {
-    overlay.classList.add("hidden");
-    titleInput.value = "";
-    descriptionInput.value = "";
-    editingIndex = null;
-    modalTitle.textContent = "Add Announcement";
-  };
+  const close = () => overlay.classList.add("hidden");
 
   addBtn.addEventListener("click", () => {
     overlay.classList.remove("hidden");
-    titleInput.focus();
+    document.getElementById("announcementTextInput").focus();
   });
 
   cancelBtn.addEventListener("click", close);
   closeBtn.addEventListener("click", close);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
 
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) close();
-  });
-
-  document.addEventListener("click", (e) => {
-    const editBtn = e.target.closest(".editAnnouncementBtn");
-    if (!editBtn) return;
-
-    const index = Number(editBtn.dataset.index);
-    const announcement = courseData.announcements[index];
-
-    const normalized = typeof announcement === "string"
-      ? { title: announcement, description: "" }
-      : announcement;
-
-    editingIndex = index;
-    titleInput.value = normalized.title || "";
-    descriptionInput.value = normalized.description || "";
-    modalTitle.textContent = "Edit Announcement";
-    overlay.classList.remove("hidden");
-    titleInput.focus();
-  });
-
-  saveBtn.addEventListener("click", async () => {
-    const title = titleInput.value.trim();
-    const description = descriptionInput.value.trim();
-
-    if (!title) {
-      alert("Please enter an announcement title.");
-      return;
-    }
-
-    const newAnnouncement = { title, description };
-
-    if (!Array.isArray(courseData.announcements)) {
-      courseData.announcements = [];
-    }
-
-    if (editingIndex === null) {
-      courseData.announcements.unshift(newAnnouncement);
-    } else {
-      courseData.announcements[editingIndex] = newAnnouncement;
-    }
-
-    try {
-      const response = await fetch(`http://localhost:5500/api/courses/${courseId}/announcements`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          announcements: courseData.announcements
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to save announcements");
-      }
-
-      courseData = await response.json();
-      renderAnnouncements();
-      close();
-    } catch (error) {
-      console.error("Failed to save announcement:", error);
-      alert("Could not save announcement.");
-    }
+  saveBtn.addEventListener("click", () => {
+    const text = document.getElementById("announcementTextInput").value.trim();
+    if (!text) { alert("Please enter an announcement."); return; }
+    courseData.announcements = courseData.announcements || [];
+    courseData.announcements.unshift(text);
+    renderAnnouncements();
+    document.getElementById("announcementTextInput").value = "";
+    close();
   });
 }
 
@@ -739,25 +646,13 @@ function setupAddAnnouncementModal() {
    ===================================================== */
 
 document.addEventListener("click", async (e) => {
-  const announcementHeader = e.target.closest(".announcementHeader");
-  if (announcementHeader && !e.target.closest(".announcementButtons")) {
-    const index = announcementHeader.dataset.index;
-    const descriptionBox = document.getElementById(`announcementDescription-${index}`);
-    if (descriptionBox) {
-      descriptionBox.classList.toggle("hidden");
-    }
-    return;
-  }
-
   const removeAssignmentBtn = e.target.closest(".removeAssignmentBtn");
   if (removeAssignmentBtn) {
     e.preventDefault();
     e.stopPropagation();
     const assignmentId = removeAssignmentBtn.dataset.id;
     try {
-      const res = await fetch(`http://localhost:5500/api/assignments/${assignmentId}`, {
-        method: "DELETE"
-      });
+      const res = await fetch(`http://localhost:5500/api/assignments/${assignmentId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete assignment");
       await fetchAndRenderAssignments();
       await drawCoursePageGraph();
@@ -775,9 +670,9 @@ document.addEventListener("click", async (e) => {
     const index = Number(removeAnnouncementBtn.dataset.index);
     courseData.announcements.splice(index, 1);
     renderAnnouncements();
-    return;
   }
 });
+
 /* =====================================================
    INITIALIZE PAGE
    ===================================================== */
@@ -788,9 +683,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadHtmlIntoBody("components/addAssignmentModal.html");
   await loadHtmlIntoBody("components/editCourseInfoModal.html");
   await loadHtmlIntoBody("components/addAnnouncementModal.html");
+  await loadHtmlIntoBody("components/editAssignmentModal.html"); 
 
   setupAddAssignmentModal();
   setupEditCourseInfoModal();
   setupAddAnnouncementModal();
   setupGradeModal();
+  setupEditAssignmentModal(); 
 });

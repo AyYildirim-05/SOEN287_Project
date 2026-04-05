@@ -1,6 +1,5 @@
 //(Josh) JS for course section
 
-//Loading html elements in
 async function loadHtmlIntoBody(path) {
     const res = await fetch(path);
     if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
@@ -9,18 +8,16 @@ async function loadHtmlIntoBody(path) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-
-    // Loads modal HTML components first
     await loadHtmlIntoBody("courses/components/addCourseModal.html");
     await loadHtmlIntoBody("courses/components/deleteCourseModal.html");
     await loadHtmlIntoBody("courses/components/enrollCourseModal.html");
+    await loadHtmlIntoBody("courses/components/unenrollCourseModal.html"); // NEW
 
-    // Runs setup logic
     setupAddCourseModal();
     setupSafeDeleteModal();
     setupEnrollCourseModal();
+    setupUnenrollCourseModal(); // NEW
     renderCourses();
-
 });
 
 async function getCatalog() {
@@ -51,9 +48,7 @@ async function addCourseToBackend(courseObj) {
 
 async function deleteCourseFromBackend(id) {
     try {
-        const res = await fetch(`/api/courses/delete/${id}`, {
-            method: "DELETE"
-        });
+        const res = await fetch(`/api/courses/delete/${id}`, { method: "DELETE" });
         if (!res.ok) throw new Error(`Failed to delete course: ${res.status}`);
         return await res.json();
     } catch (err) {
@@ -77,7 +72,22 @@ async function enrollInCourseInBackend(courseId, studentId) {
     }
 }
 
-//Add course modal
+async function unenrollFromCourseInBackend(courseId, studentId) {  // NEW
+    try {
+        const res = await fetch("/api/courses/unenroll", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ courseId, studentId })
+        });
+        if (!res.ok) throw new Error(`Failed to unenroll: ${res.status}`);
+        return await res.json();
+    } catch (err) {
+        console.error("Error unenrolling from course:", err);
+        return null;
+    }
+}
+
+// Add course modal
 function setupAddCourseModal() {
     const addBoxes = document.querySelectorAll(".teacher-only .addCourseBox");
     const modal = document.getElementById("addCourseModal");
@@ -98,100 +108,27 @@ function setupAddCourseModal() {
         form.reset();
     }
 
-    addBoxes.forEach(box => {
-        box.onclick = openModal;
-    });
-
+    addBoxes.forEach(box => { box.onclick = openModal; });
     if (closeBtn) closeBtn.onclick = closeModal;
     if (cancelBtn) cancelBtn.onclick = closeModal;
-
-    modal.onclick = (e) => {
-        if (e.target === modal) closeModal();
-    };
+    modal.onclick = (e) => { if (e.target === modal) closeModal(); };
 
     form.onsubmit = async (e) => {
         e.preventDefault();
-
-        //reading template
-        const template = document.getElementById("mTemplate").value;
-
-        // Template auto-fill
-        const templateSelect = document.getElementById("mTemplate");
-        const codeInput = document.getElementById("mCourseCode");
-        const nameInput = document.getElementById("mCourseName");
-        const creditsInput = document.getElementById("mCredits");
-        const sectionInput = document.getElementById("mSection");
-        const instructorInput = document.getElementById("mInstructor");
-        const scheduleInput = document.getElementById("mSchedule");
-
-        if (templateSelect) {
-            templateSelect.addEventListener("change", () => {
-                const template = templateSelect.value;
-
-                if (template === "programming") {
-                    codeInput.value = "SOEN287";
-                    nameInput.value = "Web Programming";
-                    creditsInput.value = "3";
-                    sectionInput.value = "AA";
-                    instructorInput.value = "Default Instructor";
-                    scheduleInput.value = "Monday 10:15 - 12:45";
-                }
-                else if (template === "theory") {
-                    codeInput.value = "COMP232";
-                    nameInput.value = "Mathematics for Computer Science";
-                    creditsInput.value = "3";
-                    sectionInput.value = "AA";
-                    instructorInput.value = "Default Instructor";
-                    scheduleInput.value = "Tuesday 14:00 - 16:30";
-                }
-                else if (template === "lab") {
-                    codeInput.value = "SOEN228";
-                    nameInput.value = "System Hardware";
-                    creditsInput.value = "3";
-                    sectionInput.value = "AB";
-                    instructorInput.value = "Default Instructor";
-                    scheduleInput.value = "Wednesday 13:15 - 15:45";
-                }
-                else {
-                    // If "None" selected, clear fields
-                    codeInput.value = "";
-                    nameInput.value = "";
-                    creditsInput.value = "";
-                    sectionInput.value = "";
-                    instructorInput.value = "";
-                    scheduleInput.value = "";
-                }
-            });
-        }
 
         const code = document.getElementById("mCourseCode").value.trim();
         const name = document.getElementById("mCourseName").value.trim();
         const credits = document.getElementById("mCredits").value.trim();
         const section = document.getElementById("mSection").value.trim();
-        const instructor = document.getElementById("mInstructor").value.trim();
         const schedule = document.getElementById("mSchedule").value.trim();
 
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const teacherId = user.uid || "";
         const instructorName = `${user.fname || ""} ${user.lname || ""}`.trim();
 
-        const result = await addCourseToBackend({ 
-            code, 
-            name, 
-            credits, 
-            section, 
-            instructor: instructor || instructorName, 
-            schedule, 
-            teacherId,
-            template
-        });
+        const result = await addCourseToBackend({ code, name, credits, section, instructor: instructorName, schedule, teacherId });
+        if (!result) { alert("Failed to add course to backend"); return; }
 
-        if (!result) {
-            alert("Failed to add course to backend");
-            return;
-        }
-
-        // Update local user object
         if (teacherId) {
             if (!user.teachingClasses) user.teachingClasses = [];
             user.teachingClasses.push(result.id);
@@ -203,9 +140,8 @@ function setupAddCourseModal() {
     };
 }
 
-//Delete course modal
+// Delete course modal (teacher)
 function setupSafeDeleteModal() {
-
     const userRole = getRole();
 
     if (userRole !== "teacher") {
@@ -225,19 +161,13 @@ function setupSafeDeleteModal() {
 
     function openDeleteModal(courseBox) {
         courseBoxToDelete = courseBox;
-
         const codeEl = courseBox.querySelector(".courseCode");
         const nameEl = courseBox.querySelector(".courseName");
-
         requiredCode = codeEl ? codeEl.textContent.trim() : "";
         const name = nameEl ? nameEl.textContent.trim() : "";
-
-        deleteText.textContent =
-            `You are about to remove ${requiredCode}${name ? " — " + name : ""}. To confirm, type: ${requiredCode}`;
-
+        deleteText.textContent = `You are about to remove ${requiredCode}${name ? " — " + name : ""}. To confirm, type: ${requiredCode}`;
         deleteInput.value = "";
         confirmBtn.disabled = true;
-
         deleteModal.classList.remove("hidden");
         deleteInput.focus();
     }
@@ -249,41 +179,19 @@ function setupSafeDeleteModal() {
     }
 
     deleteInput.addEventListener("input", () => {
-        const typed = deleteInput.value.trim().toUpperCase();
-        const needed = requiredCode.trim().toUpperCase();
-        confirmBtn.disabled = typed !== needed;
+        confirmBtn.disabled = deleteInput.value.trim().toUpperCase() !== requiredCode.trim().toUpperCase();
     });
 
     confirmBtn.addEventListener("click", async () => {
         if (!courseBoxToDelete) return;
-        
         const courseId = courseBoxToDelete.dataset.id;
-        if (!courseId) {
-            console.error("No course ID found for deletion");
-            // Fallback for hardcoded courses or legacy data
-            const updatedCatalog = (await getCatalog()).filter(
-                c => (c.code || "").toUpperCase() !== requiredCode.toUpperCase()
-            );
-            // This fallback might not work as intended without localStorage
-            courseBoxToDelete.remove();
-            closeDeleteModal();
-            return;
-        }
+        if (!courseId) { courseBoxToDelete.remove(); closeDeleteModal(); return; }
 
         const success = await deleteCourseFromBackend(courseId);
-        if (!success) {
-            alert("Failed to delete course from backend");
-            return;
-        }
+        if (!success) { alert("Failed to delete course from backend"); return; }
 
-        // Update local user object
         const user = JSON.parse(localStorage.getItem("user") || "{}");
-        if (user.teachingClasses) {
-            user.teachingClasses = user.teachingClasses.filter(id => id !== courseId);
-        }
-        if (user.enrolledCourses) {
-            user.enrolledCourses = user.enrolledCourses.filter(id => id !== courseId);
-        }
+        if (user.teachingClasses) user.teachingClasses = user.teachingClasses.filter(id => id !== courseId);
         localStorage.setItem("user", JSON.stringify(user));
 
         renderCourses();
@@ -293,50 +201,104 @@ function setupSafeDeleteModal() {
 
     closeBtn.addEventListener("click", closeDeleteModal);
     cancelBtn.addEventListener("click", closeDeleteModal);
-
-    deleteModal.addEventListener("click", (e) => {
-        if (e.target === deleteModal) closeDeleteModal();
-    });
-
+    deleteModal.addEventListener("click", (e) => { if (e.target === deleteModal) closeDeleteModal(); });
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && !deleteModal.classList.contains("hidden")) closeDeleteModal();
     });
 
-    /**
-     * Clicking the remove button on course boxes
-     */
     document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".deleteBtn");
-    if (!btn) return;
+        const btn = e.target.closest(".deleteBtn");
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const box = btn.closest(".courseBox");
+        if (!box || box.classList.contains("addCourseBox")) return;
+        openDeleteModal(box);
+    });
+}
 
-    e.preventDefault();
-    e.stopPropagation();
+// Unenroll modal (student)
+function setupUnenrollCourseModal() {
+    const userRole = getRole();
+    if (userRole !== "student") return;
 
-    const box = btn.closest(".courseBox");
-    if (!box || box.classList.contains("addCourseBox")) return;
+    const modal = document.getElementById("unenrollCourseModal");
+    if (!modal) return;
 
-    const codeEl = box.querySelector(".courseCode");
-    if (!codeEl) return;
+    const unenrollText = document.getElementById("unenrollText");
+    const unenrollInput = document.getElementById("unenrollConfirmInput");
+    const confirmBtn = document.getElementById("confirmUnenrollBtn");
+    const closeBtn = document.getElementById("closeUnenrollModalBtn");
+    const cancelBtn = document.getElementById("cancelUnenrollBtn");
 
-    openDeleteModal(box);
-});
+    let targetCourseBox = null;
+    let requiredCode = "";
 
+    function openModal(courseBox) {
+        targetCourseBox = courseBox;
+        const codeEl = courseBox.querySelector(".courseCode");
+        const nameEl = courseBox.querySelector(".courseName");
+        requiredCode = codeEl ? codeEl.textContent.trim() : "";
+        const name = nameEl ? nameEl.textContent.trim() : "";
+        unenrollText.textContent = `You are about to unenroll from ${requiredCode}${name ? " — " + name : ""}. To confirm, type: ${requiredCode}`;
+        unenrollInput.value = "";
+        confirmBtn.disabled = true;
+        modal.classList.remove("hidden");
+        unenrollInput.focus();
+    }
+
+    function closeModal() {
+        modal.classList.add("hidden");
+        targetCourseBox = null;
+        requiredCode = "";
+    }
+
+    unenrollInput.addEventListener("input", () => {
+        confirmBtn.disabled = unenrollInput.value.trim().toUpperCase() !== requiredCode.trim().toUpperCase();
+    });
+
+    confirmBtn.addEventListener("click", async () => {
+        if (!targetCourseBox) return;
+        const courseId = targetCourseBox.dataset.id;
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const studentId = user.uid;
+
+        if (!courseId || !studentId) { alert("Could not identify course or student."); return; }
+
+        const success = await unenrollFromCourseInBackend(courseId, studentId);
+        if (!success) { alert("Failed to unenroll. Please try again."); return; }
+
+        // Update local user object
+        if (user.enrolledCourses) {
+            user.enrolledCourses = user.enrolledCourses.filter(id => id !== courseId);
+        }
+        localStorage.setItem("user", JSON.stringify(user));
+
+        renderCourses();
+        window.dispatchEvent(new Event("enrollmentchange"));
+        closeModal();
+    });
+
+    closeBtn.addEventListener("click", closeModal);
+    cancelBtn.addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+    // Listen for clicks on unenroll buttons (event delegation)
+    document.addEventListener("click", (e) => {
+        const btn = e.target.closest(".unenrollBtn");
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const box = btn.closest(".courseBox");
+        if (!box || box.classList.contains("addCourseBox")) return;
+        openModal(box);
+    });
 }
 
 function escapeHtml(str) {
     return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-function getEnrolledCourses() {
-    return JSON.parse(localStorage.getItem("enrolledCourses")) || [];
-}
-function setEnrolledCourses(arr) {
-    localStorage.setItem("enrolledCourses", JSON.stringify(arr));
+        .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
 function setupEnrollCourseModal() {
@@ -351,15 +313,9 @@ function setupEnrollCourseModal() {
 
     async function openModal() {
         const catalog = await getCatalog();
-        // Since we are now storing enrollments in Firestore, we should ideally fetch the user's enrolled courses from the backend.
-        // For now, to minimize changes, we'll keep using the local comparison if needed, 
-        // but it's better to just show all courses and let the backend handle duplication if it exists.
-        
         const user = JSON.parse(localStorage.getItem("user") || "{}");
-        const enrolledIds = new Set((user.enrolledCourses || []));
-
-        // Only show courses not already enrolled AND enabled
-        const choices = catalog.filter(c => !enrolledIds.has(c.id) && c.isEnabled !== false);
+        const enrolledIds = new Set(user.enrolledCourses || []);
+        const choices = catalog.filter(c => !enrolledIds.has(c.id));
 
         select.innerHTML = "";
         if (choices.length === 0) {
@@ -374,7 +330,7 @@ function setupEnrollCourseModal() {
             select.disabled = false;
             choices.forEach(c => {
                 const opt = document.createElement("option");
-                opt.value = c.id; // Store ID as value
+                opt.value = c.id;
                 opt.textContent = `${c.code} — ${c.name || ""}`.trim();
                 select.appendChild(opt);
             });
@@ -384,18 +340,12 @@ function setupEnrollCourseModal() {
         select.focus();
     }
 
-    function closeModal() {
-        modal.classList.add("hidden");
-        form.reset();
-    }
+    function closeModal() { modal.classList.add("hidden"); form.reset(); }
 
     if (studentEnrollBox) studentEnrollBox.onclick = openModal;
     if (closeBtn) closeBtn.onclick = closeModal;
     if (cancelBtn) cancelBtn.onclick = closeModal;
-
-    modal.onclick = (e) => {
-        if (e.target === modal) closeModal();
-    };
+    modal.onclick = (e) => { if (e.target === modal) closeModal(); };
 
     form.onsubmit = async (e) => {
         e.preventDefault();
@@ -405,20 +355,15 @@ function setupEnrollCourseModal() {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const studentId = user.uid;
 
-        if (!studentId) {
-            alert("Please log in to enroll.");
-            return;
-        }
+        if (!studentId) { alert("Please log in to enroll."); return; }
 
         const success = await enrollInCourseInBackend(courseId, studentId);
         if (success) {
-            // Update local user object to reflect new enrollment
             if (!user.enrolledCourses) user.enrolledCourses = [];
             if (!user.enrolledCourses.includes(courseId)) {
                 user.enrolledCourses.push(courseId);
                 localStorage.setItem("user", JSON.stringify(user));
             }
-            
             renderCourses();
             window.dispatchEvent(new Event("enrollmentchange"));
             closeModal();
@@ -433,27 +378,16 @@ async function renderCourses() {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const enrolledIds = new Set(user.enrolledCourses || []);
     const teachingIds = new Set(user.teachingClasses || []);
-    
     const catalog = await getCatalog();
     const coursesContainer = document.querySelector(".coursesContainer");
     if (!coursesContainer) return;
-    
-    // Clear existing dynamic courses (keep add course boxes)
+
     document.querySelectorAll(".courseBox:not(.addCourseBox)").forEach(box => box.remove());
 
     catalog.forEach(course => {
         const id = course.id;
-        
-        // Show if student is enrolled OR if teacher created it
-        if (role === "student" && !enrolledIds.has(id)) {
-            return;
-        }
-        
-        if (role === "teacher" && !teachingIds.has(id)) {
-            // Option: Show all courses to teachers, or only theirs.
-            // Based on user's request, adding created class to teacher's array implies they should see theirs.
-            return;
-        }
+        if (role === "student" && !enrolledIds.has(id)) return;
+        if (role === "teacher" && !teachingIds.has(id)) return;
 
         const card = document.createElement("a");
         card.className = "courseBox";
@@ -463,38 +397,38 @@ async function renderCourses() {
         card.style.color = "inherit";
 
         card.innerHTML = `
-      <div class="courseMain">
-        <div class="courseCode">${escapeHtml(course.code)}</div>
-        <div class="courseName">${escapeHtml(course.name)}</div>
-      </div>
-      <div class="courseExtra">
-        <p><strong>Credits:</strong> ${escapeHtml(course.credits || "")}</p>
-        ${course.section ? `<p><strong>Section:</strong> ${escapeHtml(course.section)}</p>` : ""}
-        ${course.instructor ? `<p><strong>Instructor:</strong> ${escapeHtml(course.instructor)}</p>` : ""}
-        ${course.schedule ? `<p><strong>Schedule:</strong> ${escapeHtml(course.schedule)}</p>` : ""}
+          <div class="courseMain">
+            <div class="courseCode">${escapeHtml(course.code)}</div>
+            <div class="courseName">${escapeHtml(course.name)}</div>
+          </div>
+          <div class="courseExtra">
+            <p><strong>Credits:</strong> ${escapeHtml(course.credits || "")}</p>
+            ${course.section ? `<p><strong>Section:</strong> ${escapeHtml(course.section)}</p>` : ""}
+            ${course.instructor ? `<p><strong>Instructor:</strong> ${escapeHtml(course.instructor)}</p>` : ""}
+            ${course.schedule ? `<p><strong>Schedule:</strong> ${escapeHtml(course.schedule)}</p>` : ""}
 
-        <div class="courseActions">
-          <button class="deleteBtn" type="button">Remove</button>
-        </div>
-      </div>
-    `;
+            <div class="courseActions">
+              <!-- Teacher sees Remove, Student sees Unenroll -->
+              <button class="deleteBtn teacher-role-btn" type="button" style="display:none;">Remove</button>
+              <button class="unenrollBtn student-role-btn" type="button" style="display:none;">Unenroll</button>
+            </div>
+          </div>
+        `;
 
-        // The delete button visibility is also role-dependent
-        const delBtn = card.querySelector(".deleteBtn");
-        if (delBtn) {
-            delBtn.style.display = (role === "teacher") ? "block" : "none";
-        }
+        // Show the right button based on role
+        const deleteBtn   = card.querySelector(".deleteBtn");
+        const unenrollBtn = card.querySelector(".unenrollBtn");
+        if (deleteBtn)   deleteBtn.style.display   = (role === "teacher") ? "block" : "none";
+        if (unenrollBtn) unenrollBtn.style.display = (role === "student") ? "block" : "none";
 
-        // Insert before the wrapper (which IS a direct child of coursesContainer)
         const refNode = coursesContainer.querySelector(".student-only, .teacher-only");
         if (refNode) coursesContainer.insertBefore(card, refNode);
         else coursesContainer.appendChild(card);
     });
 
-    // Re-attach listeners to the 'Add Course' and 'Enroll' boxes because they are within the container
-    // and might have been affected or need re-initialization if they were hidden/shown
     setupAddCourseModal();
     setupEnrollCourseModal();
+    setupUnenrollCourseModal();
 }
 
 window.addEventListener("rolechange", renderCourses);

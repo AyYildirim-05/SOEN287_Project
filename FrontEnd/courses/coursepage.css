@@ -127,6 +127,36 @@ body {
   background: #005fa3;
 }
 
+/*Edit Assignment*/
+.editAssignmentBtn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #0077cc;
+  color: white;
+  font-size: 13px;
+}
+ 
+.editAssignmentBtn:hover {
+  background: #005fa3;
+}
+
+/*Unenroll Button*/
+.unenrollBtn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(200, 0, 0, 0.35);
+  background: rgba(255, 0, 0, 0.06);
+  font-weight: 700;
+  cursor: pointer;
+  color: #dc2626;
+}
+ 
+.unenrollBtn:hover {
+  background: rgba(255, 0, 0, 0.12);
+}
+
 /* =====================================================
    ASSIGNMENTS
    ===================================================== */

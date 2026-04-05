@@ -2,12 +2,10 @@ const { db } = require("../database/firebase");
 const admin = require("firebase-admin");
 const Assignment = require("../models/assignments");
 
-// add new assignments
+// Add new assignment
 exports.addAssignment = async (req, res) => {
     try {
-        //to confirm what dueDate looks like
         console.log("Assignment body:", req.body);
-
         const { courseId, teacherId, title, weight, description, dueDate } = req.body;
         
         const newAssignment = new Assignment({
@@ -15,42 +13,25 @@ exports.addAssignment = async (req, res) => {
         }).toFirestore();
 
         const docRef = await db.collection("assignments").add(newAssignment);
-        res.status(201).json({ id: docRef.id, ...newAssignment});
+        res.status(201).json({ id: docRef.id, ...newAssignment });
     } catch (error) {
         console.error("Error adding assignment:", error);
-        res.status(500).json({ message: "Internal server error."});
+        res.status(500).json({ message: "Internal server error." });
     }
 };
 
-// helper function to safely parse dates 
+// Helper function to safely parse dates
 const formatTimestamp = (field) => {
     if (!field) return null;
-
-    // 1. If it's a standard Firebase Timestamp class
-    if (typeof field.toDate === 'function') {
-        return field.toDate().toISOString();
-    }
-
-    // 2. If Firebase returned a raw object (stripped of prototype)
-    if (field._seconds !== undefined) {
-        return new Date(field._seconds * 1000).toISOString();
-    }
-    
-    // 3. If it's already a JS Date object
-    if (field instanceof Date) {
-        return field.toISOString();
-    }
-
-    // 4. If it was saved as a plain string (e.g., "Mar 30, 2026")
+    if (typeof field.toDate === 'function') return field.toDate().toISOString();
+    if (field._seconds !== undefined) return new Date(field._seconds * 1000).toISOString();
+    if (field instanceof Date) return field.toISOString();
     const parsedDate = new Date(field);
-    if (!isNaN(parsedDate.getTime())) {
-        return parsedDate.toISOString();
-    }
+    if (!isNaN(parsedDate.getTime())) return parsedDate.toISOString();
+    return field;
+};
 
-    return field; // Fallback
-}
-
-// get assignments for a specific course
+// Get assignments for a specific course
 exports.getAssignmentsByCourse = async (req, res) => {
     try {
         const { courseId } = req.params;
@@ -59,7 +40,6 @@ exports.getAssignmentsByCourse = async (req, res) => {
         const assignments = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            
             assignments.push({ 
                 id: doc.id,
                 ...data,
@@ -72,42 +52,39 @@ exports.getAssignmentsByCourse = async (req, res) => {
         res.status(200).json(assignments);
     } catch (error) {
         console.error("Error fetching assignments:", error);
-        res.status(500).json({ message: "Internal server error."});
+        res.status(500).json({ message: "Internal server error." });
     }
 };
 
-// toggle assignment completion for students
+// Toggle assignment completion for students
 exports.toggleCompletion = async (req, res) => {
     try {
-        const { studentId, assignmentId, isCompleted} = req.body;
+        const { studentId, assignmentId, isCompleted } = req.body;
         const studentRef = db.collection("students").doc(studentId);
 
         if (isCompleted) {
-            // add to the completed assignments array
             await studentRef.update({
                 completedAssignments: admin.firestore.FieldValue.arrayUnion(assignmentId)
             });
         } else {
-            // remove from the completed assignments array
             await studentRef.update({
                 completedAssignments: admin.firestore.FieldValue.arrayRemove(assignmentId)
             });
         }
-        res.status(200).json({message: "Status updated successfully."})
+        res.status(200).json({ message: "Status updated successfully." });
     } catch (error) {
         console.error("Error updating completion status", error);
-        res.status(500).json({message: "Internal server error."});
+        res.status(500).json({ message: "Internal server error." });
     }
-} 
+};
 
-// get all assignments
+// Get all assignments
 exports.getAllAssignments = async (req, res) => {
     try {
         const snapshot = await db.collection("assignments").get();
         const assignments = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            
             assignments.push({ 
                 id: doc.id, 
                 ...data,
@@ -119,62 +96,87 @@ exports.getAllAssignments = async (req, res) => {
         res.status(200).json(assignments);
     } catch (error) {
         console.error("Error fetching all assignments", error);
-        res.status(500).json({ message: "Internal server error."});
+        res.status(500).json({ message: "Internal server error." });
     }
-}
+};
 
-// delete an assignment
+// Delete an assignment (teacher)
 exports.deleteAssignment = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
+        const docRef = db.collection("assignments").doc(id);
+        const doc = await docRef.get();
+
+        if (!doc.exists) {
+            return res.status(404).json({ message: "Assignment not found." });
+        }
+
+        await docRef.delete();
+        res.status(200).json({ message: "Assignment deleted successfully." });
+    } catch (error) {
+        console.error("Error deleting assignment:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};
+
+// Student submits their own grade for an assignment
+exports.gradeAssignment = async (req, res) => {
+    try {
+        const studentId = req.user.uid;
+        const { assignmentId, score } = req.body;
+
+        if (!assignmentId || score === undefined) {
+            return res.status(400).json({ message: "assignmentId and score are required." });
+        }
+
+        if (score < 0 || score > 100) {
+            return res.status(400).json({ message: "Score must be between 0 and 100." });
+        }
+
+        const assignmentRef = db.collection("assignments").doc(assignmentId);
+        const assignmentDoc = await assignmentRef.get();
+
+        if (!assignmentDoc.exists) {
+            return res.status(404).json({ message: "Assignment not found." });
+        }
+
+        await assignmentRef.update({
+            [`grades.${studentId}`]: score
+        });
+
+        res.status(200).json({ message: "Grade saved successfully." });
+    } catch (error) {
+        console.error("Error saving grade:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};
+
+// Edit an assignment (teacher)
+exports.editAssignment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, dueDate, weight, description } = req.body;
 
         const docRef = db.collection("assignments").doc(id);
         const doc = await docRef.get();
 
         if (!doc.exists) {
-            return res.status(404).json({message: "Assignment not found."});
-        }
-
-        // delete the document from firebase
-        await docRef.delete();
-
-        res.status(200).json({message: "Assignment deleted successfully."});
-    } catch (error) {
-        console.error("Error deleting assignment:", error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-}
-
-// Students updating their grades
-exports.gradeAssignment = async (req, res) => {
-    try {
-        const studentId = req.user.uid; // comes from verifyToken middleware
-        const { assignmentId, score } = req.body;
- 
-        if (!assignmentId || score === undefined) {
-            return res.status(400).json({ message: "assignmentId and score are required." });
-        }
- 
-        if (score < 0 || score > 100) {
-            return res.status(400).json({ message: "Score must be between 0 and 100." });
-        }
- 
-        const assignmentRef = db.collection("assignments").doc(assignmentId);
-        const assignmentDoc = await assignmentRef.get();
- 
-        if (!assignmentDoc.exists) {
             return res.status(404).json({ message: "Assignment not found." });
         }
- 
-        // Writes only this student's entry into the grades map.
-        // Other students' grades are untouched.
-        await assignmentRef.update({
-            [`grades.${studentId}`]: score
-        });
- 
-        res.status(200).json({ message: "Grade saved successfully." });
+
+        const updates = { updatedAt: new Date() };
+        if (title !== undefined)       updates.title = title;
+        if (weight !== undefined)      updates.weight = weight;
+        if (description !== undefined) updates.description = description;
+        if (dueDate !== undefined) {
+            const parsed = new Date(dueDate);
+            updates.dueDate = isNaN(parsed.getTime()) ? new Date() : parsed;
+        }
+
+        await docRef.update(updates);
+        res.status(200).json({ message: "Assignment updated successfully." });
     } catch (error) {
-        console.error("Error saving grade:", error);
+        console.error("Error editing assignment:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 };

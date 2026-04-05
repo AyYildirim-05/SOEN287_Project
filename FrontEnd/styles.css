@@ -88,3 +88,18 @@ body {
 .logout-btn:hover {
     background-color: #cc0000;
 }
+
+/*Unenroll Button*/
+.unenrollBtn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(200, 0, 0, 0.35);
+  background: rgba(255, 0, 0, 0.06);
+  font-weight: 700;
+  cursor: pointer;
+  color: #dc2626;
+}
+ 
+.unenrollBtn:hover {
+  background: rgba(255, 0, 0, 0.12);
+}

@@ -1,0 +1,35 @@
+<div id="editAssignmentOverlay" class="modalOverlay hidden">
+  <div class="modal">
+    <div class="modalHeader">
+      <h2 style="margin:0;">Edit Assignment</h2>
+      <button id="closeEditAssignmentModalBtn" class="iconBtn" type="button">✕</button>
+    </div>
+
+    <div class="modalBody">
+      <label>
+        Title
+        <input id="editAssignmentTitle" type="text">
+      </label>
+
+      <label>
+        Due Date
+        <input id="editAssignmentDue" type="text" placeholder="Mar 30, 2026">
+      </label>
+
+      <label>
+        Weight (%)
+        <input id="editAssignmentWeight" type="text" placeholder="10%">
+      </label>
+
+      <label>
+        Description
+        <input id="editAssignmentDescription" type="text" placeholder="Optional description">
+      </label>
+
+      <div class="modalFooter">
+        <button id="cancelEditAssignmentBtn" class="btnSecondary" type="button">Cancel</button>
+        <button id="saveEditAssignmentBtn" class="btnPrimary" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
