@@ -26,4 +26,7 @@ router.post("/unenroll", courseController.unenrollFromCourse);
 //Update announcements for a course
 router.put("/:id/announcements", courseController.updateAnnouncements);
 
+//Update course info
+router.put("/:id", courseController.updateCourse);
+
 module.exports = router;

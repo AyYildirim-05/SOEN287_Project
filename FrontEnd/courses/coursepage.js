@@ -516,9 +516,9 @@ function setupEditAssignmentModal() {
     activeAssignmentId = btn.dataset.id;
 
     // Query inputs fresh each time so they are never null
-    document.getElementById("editAssignmentTitle").value       = btn.dataset.title || "";
-    document.getElementById("editAssignmentDue").value         = btn.dataset.due || "";
-    document.getElementById("editAssignmentWeight").value      = btn.dataset.weight || "";
+    document.getElementById("editAssignmentTitle").value = btn.dataset.title || "";
+    document.getElementById("editAssignmentDue").value = btn.dataset.due || "";
+    document.getElementById("editAssignmentWeight").value = btn.dataset.weight || "";
     document.getElementById("editAssignmentDescription").value = btn.dataset.description || "";
 
     overlay.classList.remove("hidden");
@@ -526,9 +526,9 @@ function setupEditAssignmentModal() {
   });
 
   document.getElementById("saveEditAssignmentBtn")?.addEventListener("click", async () => {
-    const title       = document.getElementById("editAssignmentTitle").value.trim();
-    const dueDate     = document.getElementById("editAssignmentDue").value.trim();
-    const weight      = document.getElementById("editAssignmentWeight").value.trim();
+    const title = document.getElementById("editAssignmentTitle").value.trim();
+    const dueDate = document.getElementById("editAssignmentDue").value.trim();
+    const weight = document.getElementById("editAssignmentWeight").value.trim();
     const description = document.getElementById("editAssignmentDescription").value.trim();
 
     if (!title || !dueDate) {
@@ -694,26 +694,48 @@ function setupEditCourseInfoModal() {
   if (closeBtn) closeBtn.addEventListener("click", close);
   overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
 
-  saveBtn.addEventListener("click", () => {
+  saveBtn.addEventListener("click", async () => {
     const title = document.getElementById("editCourseTitle").value.trim();
     const instructor = document.getElementById("editCourseInstructor").value.trim();
     const credits = document.getElementById("editCourseCredits").value.trim();
     const section = document.getElementById("editCourseSection").value.trim();
     const schedule = document.getElementById("editCourseSchedule").value.trim();
+    const tasInput = document.getElementById("editCourseTAs").value.trim();
 
     if (!title || !instructor || !credits) {
       alert("Please fill all fields.");
       return;
     }
 
-    courseData.name = title;
-    courseData.instructor = instructor;
-    courseData.credits = credits;
-    courseData.section = section;
-    courseData.schedule = schedule;
+    const tas = tasInput
+      ? tasInput.split(",").map(t => t.trim()).filter(t => t.length > 0)
+      : [];
 
-    renderCourseInfo();
-    close();
+    try {
+      const res = await fetch(`http://localhost:5500/api/courses/${courseId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: title,
+          instructor,
+          credits,
+          section,
+          schedule,
+          tas
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update course.");
+      }
+
+      courseData = await res.json();
+      renderCourseInfo();
+      close();
+    } catch (error) {
+      console.error("Error updating course info:", error);
+      alert("Could not save course info.");
+    }
   });
 }
 
