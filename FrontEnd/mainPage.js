@@ -43,15 +43,13 @@ function toggleProfileMenu() {
     }
 }
 
-// Force reload when navigating back/forward to ensure data is fresh
+// Force reload when navigating back/forward
 window.addEventListener("pageshow", (event) => {
-    // 1. Check if the page was restored from the BFCache (Back-Forward Cache)
     if (event.persisted) {
         window.location.reload();
         return;
     }
 
-    // 2. Check the Navigation Timing API for back_forward type
     const navEntries = performance.getEntriesByType("navigation");
     if (navEntries.length > 0) {
         const navType = navEntries[0].type;
