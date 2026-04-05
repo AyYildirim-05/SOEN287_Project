@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="courses/courses.css">
     <link rel="stylesheet" href="schedule/schedule.css">
     <link rel="stylesheet" href="Graph/graphStyles.css">
+    <link rel="stylesheet" href="Graph/gpaTable.css">
     <script src="mainPage.js"></script>
 </head>
 
@@ -155,8 +156,27 @@
         <!-- Grades Graph (Sahon) -->
         <div class="gradesGraph">
             <h3>Your Grades</h3>
+
+            <p id="gpaEstimate">Estimated GPA: N/A</p>
+
             <div class="graphContainer">
                 <canvas id="gradesChart"></canvas>
+            </div>
+
+            <div class="gpaBreakdown">
+                <h4>Course GPA Breakdown</h4>
+                <table id="gpaTable">
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th>Credits</th>
+                            <th>Final Grade</th>
+                            <th>GPA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gpaTableBody">
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -171,10 +191,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0"></script> <!-- This is to importat Chart.js -->
     <script src="Graph\gradesGraph.js"></script> <!-- This is the script for the grades graph -->
+    <script src="Graph/gpaEstimate.js"></script>
 
     <script src="schedule/archiveAssignments.js"></script> <!-- This is for the display of the archived assignments -->
     <script src="schedule/displayAssignments.js"></script> <!-- This is to display the assignments from the database -->
-    <script src="schedule/sortAssignments.js"></script> 
+    <script src="schedule/sortAssignments.js"></script>
 </body>
 
 </html>

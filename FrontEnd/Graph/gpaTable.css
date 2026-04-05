@@ -1,0 +1,20 @@
+.gpaBreakdown {
+    margin-top: 20px;
+}
+
+#gpaTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#gpaTable th,
+#gpaTable td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+#gpaTable th {
+    background-color: #f4f4f4;
+}
