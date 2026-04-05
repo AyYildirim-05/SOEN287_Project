@@ -72,6 +72,12 @@ function renderCourseInfo() {
   document.getElementById("courseCredits").textContent =
     "Credits: " + (courseData.credits || "");
 
+  document.getElementById("courseSection").textContent =
+    "Section: " + (courseData.section || "");
+
+  document.getElementById("courseSchedule").textContent =
+    "Schedule: " + (courseData.schedule || "");
+
   const taText = (courseData.tas && courseData.tas.length > 0)
     ? courseData.tas.join(", ")
     : "None";
@@ -92,7 +98,7 @@ async function fetchAndRenderAssignments() {
   container.innerHTML = "<p>Loading assignments...</p>";
 
   const courseId = new URLSearchParams(window.location.search).get("id"); //getCourseCodeFromUrl() would break
-  
+
   // Get actual user ID from localStorage
   const userDataString = localStorage.getItem("user");
   let studentId = "TEST_STUDENT_UID"; // Fallback
@@ -107,17 +113,27 @@ async function fetchAndRenderAssignments() {
     const assignments = await assignRes.json();
 
     let completedList = [];
-    /*
+
     try {
-      const studentRes = await fetch(`http://localhost:5500/api/students/${studentId}`);
+      const studentRes = await fetch(`http://localhost:5500/api/student/${studentId}`);
+
       if (studentRes.ok) {
         const studentData = await studentRes.json();
         completedList = studentData.completedAssignments || [];
+      } else {
+        console.warn(`Failed to fetch student completion data: ${studentRes.status}`);
       }
     } catch (e) {
-      console.warn("Could not fetch student completion data. Skipping checks.", e);
+      console.warn("Could not fetch student completion data.", e);
     }
-      */
+
+    if (completedList.length === 0) {
+      const userDataString = localStorage.getItem("user");
+      if (userDataString) {
+        const userData = JSON.parse(userDataString);
+        completedList = userData.completedAssignments || [];
+      }
+    }
 
     container.innerHTML = ""; // Clear loading text
 
@@ -127,66 +143,56 @@ async function fetchAndRenderAssignments() {
     }
 
     assignments.forEach(a => {
-      const isCompleted = completedList.includes(a.id);
-      const dueDateString = a.dueDate 
-      ? new Date(a.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-      : "No due date";
+      const assignmentId = a.id || a._id;
+      const isCompleted = completedList.includes(assignmentId);
+
+      const dueDateString = a.dueDate
+        ? new Date(a.dueDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric"
+        })
+        : "No due date";
+
       const weightDisplay = a.weight ? `Weight: ${a.weight}` : "";
 
       const box = document.createElement("div");
       box.className = "assignmentBox";
 
-      /*box.innerHTML = `
-    <div class="assignmentText">
-      <h4>Due: ${dueDateString}</h4>
-      <p class="weightText">${weightDisplay}</p> <h5>${a.title}</h5>
-      <p>${courseData.name || courseData.code}</p>
-    </div>
-
-    
-
-    <div class="assignmentActions">
-      <label>
-        Completed
-        <input type="checkbox" class="completion-checkbox" data-id="${a.id}" ${isCompleted ? "checked" : ""}>
-      </label>
-
-<button class="removeAssignmentBtn" data-id="${a.id}" type="button">Remove</button>    </div>
-    `;*/
-
       box.innerHTML = `
-  <div class="assignmentText">
-    <h4>Due: ${dueDateString}</h4>
-    <p class="weightText">${weightDisplay}</p>
-    <h5>${a.title}</h5>
-    <p>${courseData.name || courseData.code}</p>
-    <p class="assignmentDescription">${a.description ? a.description : "No description provided."}</p>
-  </div>
- 
-  <div class="assignmentActions">
-    <label>
-      Completed
-      <input type="checkbox" class="completion-checkbox" data-id="${a.id}" ${isCompleted ? "checked" : ""}>
-    </label>
- 
-    <div class="student-only">
-      <span class="gradeDisplay" id="gradeDisplay-${a.id}">
-        ${a.grades && a.grades[studentId] !== undefined ? "Grade: " + a.grades[studentId] + "%" : "No grade yet"}
-      </span>
-      <button
-        class="enterGradeBtn"
-        type="button"
-        data-id="${a.id}"
-        data-title="${a.title.replace(/"/g, '&quot;')}"
-        data-current="${a.grades && a.grades[studentId] !== undefined ? a.grades[studentId] : ''}"
-      >
-        Enter Grade
-      </button>
-    </div>
- 
-    <button class="removeAssignmentBtn teacher-only" data-id="${a.id}" type="button">Remove</button>
-  </div>
-`;
+        <div class="assignmentText">
+          <h4>Due: ${dueDateString}</h4>
+          <p class="weightText">${weightDisplay}</p>
+          <h5>${a.title}</h5>
+          <p>${courseData.name || courseData.code}</p>
+          <p class="assignmentDescription">${a.description ? a.description : "No description provided."}</p>
+        </div>
+
+        <div class="assignmentActions">
+          <label>
+            Completed
+            <input type="checkbox" class="completion-checkbox" data-id="${assignmentId}" ${isCompleted ? "checked" : ""}>
+          </label>
+
+          <div class="student-only">
+            <span class="gradeDisplay" id="gradeDisplay-${assignmentId}">
+              ${a.grades && a.grades[studentId] !== undefined ? "Grade: " + a.grades[studentId] + "%" : "No grade yet"}
+            </span>
+            <button
+              class="enterGradeBtn"
+              type="button"
+              data-id="${assignmentId}"
+              data-title="${a.title.replace(/"/g, '&quot;')}"
+              data-current="${a.grades && a.grades[studentId] !== undefined ? a.grades[studentId] : ''}"
+            >
+              Enter Grade
+            </button>
+          </div>
+
+          <button class="removeAssignmentBtn teacher-only" data-id="${assignmentId}" type="button">Remove</button>
+        </div>
+      `;
+
       container.appendChild(box);
     });
 
@@ -206,14 +212,38 @@ async function fetchAndRenderAssignments() {
               isCompleted: isChecked
             })
           });
+
           if (!res.ok) throw new Error("Database failed to update");
+
+          const currentUserString = localStorage.getItem("user");
+          if (currentUserString) {
+            const currentUser = JSON.parse(currentUserString);
+
+            if (!currentUser.completedAssignments) {
+              currentUser.completedAssignments = [];
+            }
+
+            if (isChecked) {
+              if (!currentUser.completedAssignments.includes(assignmentId)) {
+                currentUser.completedAssignments.push(assignmentId);
+              }
+            } else {
+              currentUser.completedAssignments = currentUser.completedAssignments.filter(
+                id => id !== assignmentId
+              );
+            }
+
+            localStorage.setItem("user", JSON.stringify(currentUser));
+          }
+
         } catch (err) {
           console.error(err);
           alert("Could not update completion status on server.");
-          e.target.checked = !isChecked; // Revert the visual checkmark if DB fails
+          e.target.checked = !isChecked; // revert visual checkbox if DB update fails
         }
       });
     });
+
   } catch (error) {
     console.error("Error displaying assignments:", error);
     container.innerHTML = "<p>Error loading assignments.</p>";
@@ -420,22 +450,22 @@ function setupAddAssignmentModal() {
 }
 
 async function updateCourseInBackend(courseId, updatedCourse) {
-    try {
-        const res = await fetch(`/api/courses/${courseId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatedCourse)
-        });
+  try {
+    const res = await fetch(`/api/courses/${courseId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedCourse)
+    });
 
-        if (!res.ok) {
-            throw new Error(`Failed to update course: ${res.status}`);
-        }
-
-        return await res.json();
-    } catch (err) {
-        console.error("Error updating course:", err);
-        return null;
+    if (!res.ok) {
+      throw new Error(`Failed to update course: ${res.status}`);
     }
+
+    return await res.json();
+  } catch (err) {
+    console.error("Error updating course:", err);
+    return null;
+  }
 }
 
 function setupEditCourseInfoModal() {
@@ -456,6 +486,8 @@ function setupEditCourseInfoModal() {
     document.getElementById("editCourseTitle").value = courseData.name;
     document.getElementById("editCourseInstructor").value = courseData.instructor;
     document.getElementById("editCourseCredits").value = courseData.credits;
+    document.getElementById("editCourseSection").value = courseData.section || "";
+    document.getElementById("editCourseSchedule").value = courseData.schedule || "";
     document.getElementById("editCourseTAs").value =
       (courseData.tas || []).join(", ");
 
@@ -474,35 +506,39 @@ function setupEditCourseInfoModal() {
     const title = document.getElementById("editCourseTitle").value.trim();
     const instructor = document.getElementById("editCourseInstructor").value.trim();
     const credits = document.getElementById("editCourseCredits").value.trim();
+    const section = document.getElementById("editCourseSection").value.trim();
+    const schedule = document.getElementById("editCourseSchedule").value.trim();
     const tasInput = document.getElementById("editCourseTAs").value.trim();
 
     if (!title || !instructor || !credits) {
-        alert("Please fill all fields.");
-        return;
+      alert("Please fill all required fields.");
+      return;
     }
 
     const tas = tasInput
-        ? tasInput.split(",").map(t => t.trim()).filter(t => t.length > 0)
-        : [];
+      ? tasInput.split(",").map(t => t.trim()).filter(t => t.length > 0)
+      : [];
 
     const updatedCourse = {
-        name: title,
-        instructor: instructor,
-        credits: credits,
-        tas: tas
+      name: title,
+      instructor: instructor,
+      credits: credits,
+      section: section,
+      schedule: schedule,
+      tas: tas
     };
 
     const result = await updateCourseInBackend(courseId, updatedCourse);
 
     if (!result) {
-        alert("Failed to save course changes.");
-        return;
+      alert("Failed to save course changes.");
+      return;
     }
 
     courseData = result;
     renderCourseInfo();
     close();
-});
+  });
 }
 
 function setupAddAnnouncementModal() {
@@ -608,7 +644,7 @@ function setupAddAnnouncementModal() {
 */
 
 document.addEventListener("click", async (e) => {
-    const announcementHeader = e.target.closest(".announcementHeader");
+  const announcementHeader = e.target.closest(".announcementHeader");
   if (announcementHeader && !e.target.closest(".announcementButtons")) {
     const index = announcementHeader.dataset.index;
     const descriptionBox = document.getElementById(`announcementDescription-${index}`);
@@ -617,7 +653,7 @@ document.addEventListener("click", async (e) => {
     }
     return;
   }
-  
+
   const removeAssignmentBtn = e.target.closest(".removeAssignmentBtn");
   if (removeAssignmentBtn) {
     e.preventDefault();
@@ -641,7 +677,7 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
-    const removeAnnouncementBtn = e.target.closest(".removeAnnouncementBtn");
+  const removeAnnouncementBtn = e.target.closest(".removeAnnouncementBtn");
   if (removeAnnouncementBtn) {
     e.preventDefault();
     e.stopPropagation();
@@ -675,49 +711,49 @@ document.addEventListener("click", async (e) => {
 
 // SET UP COURSE MODAL
 function setupGradeModal() {
-  const overlay    = document.getElementById("gradeModalOverlay");
-  const closeBtn   = document.getElementById("closeGradeModalBtn");
-  const cancelBtn  = document.getElementById("cancelGradeBtn");
-  const saveBtn    = document.getElementById("saveGradeBtn");
+  const overlay = document.getElementById("gradeModalOverlay");
+  const closeBtn = document.getElementById("closeGradeModalBtn");
+  const cancelBtn = document.getElementById("cancelGradeBtn");
+  const saveBtn = document.getElementById("saveGradeBtn");
   const scoreInput = document.getElementById("gradeScoreInput");
-  const titleEl    = document.getElementById("gradeModalAssignmentTitle");
- 
+  const titleEl = document.getElementById("gradeModalAssignmentTitle");
+
   if (!overlay) return;
- 
+
   let activeAssignmentId = null;
- 
+
   const close = () => {
     overlay.classList.add("hidden");
     scoreInput.value = "";
     activeAssignmentId = null;
   };
- 
+
   closeBtn.addEventListener("click", close);
   cancelBtn.addEventListener("click", close);
   overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
- 
+
   // Open modal when any "Enter Grade" button is clicked
   document.addEventListener("click", (e) => {
     const btn = e.target.closest(".enterGradeBtn");
     if (!btn) return;
- 
+
     activeAssignmentId = btn.dataset.id;
     titleEl.textContent = btn.dataset.title;
     scoreInput.value = btn.dataset.current; // pre-fill if grade already exists
     overlay.classList.remove("hidden");
     scoreInput.focus();
   });
- 
+
   saveBtn.addEventListener("click", async () => {
     const score = Number(scoreInput.value);
- 
+
     if (scoreInput.value === "" || isNaN(score) || score < 0 || score > 100) {
       alert("Please enter a score between 0 and 100.");
       return;
     }
- 
+
     const token = localStorage.getItem("token");
- 
+
     try {
       const res = await fetch("http://localhost:5500/api/assignments/grade", {
         method: "POST",
@@ -730,17 +766,17 @@ function setupGradeModal() {
           score
         })
       });
- 
+
       if (!res.ok) throw new Error("Failed to save grade.");
- 
+
       // Update the grade display on the card without a full re-render
       const gradeDisplay = document.getElementById(`gradeDisplay-${activeAssignmentId}`);
       if (gradeDisplay) gradeDisplay.textContent = `Grade: ${score}%`;
- 
+
       // Update the data-current attribute so re-opening shows the new value
       const btn = document.querySelector(`.enterGradeBtn[data-id="${activeAssignmentId}"]`);
       if (btn) btn.dataset.current = score;
- 
+
       close();
     } catch (err) {
       console.error("Error saving grade:", err);
