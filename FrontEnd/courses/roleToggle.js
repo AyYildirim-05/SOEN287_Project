@@ -51,6 +51,22 @@ function applyRoleUI() {
   if (badge) badge.textContent = role.toUpperCase();
 }
 
+/* =====================================================
+   A method for admins to have same controls as teacher. Used for editing and deleting as admin.
+   ===================================================== */
+
+function applyAdminAsTeacher() {
+  const userStr = localStorage.getItem("user");
+  if (!userStr) return;
+  const user = JSON.parse(userStr);
+  if (user.role !== "admin") return;
+
+  // Admins get the same edit/remove controls as teachers
+  document.querySelectorAll(".teacher-only").forEach(el => {
+    el.style.display = "flex";
+  });
+}
+
 // Apply on load + whenever toggle changes
 document.addEventListener("DOMContentLoaded", applyRoleUI);
 window.addEventListener("rolechange", applyRoleUI);
