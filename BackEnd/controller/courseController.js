@@ -183,6 +183,7 @@ exports.addCourse = async (req, res) => {
             assignments: templateData.assignments || [],
             announcements: templateData.announcements || [],
             template: template || "",
+            isEnabled: true,
             createdAt: new Date(),
             updatedAt: new Date()
         };
@@ -281,6 +282,15 @@ exports.enrollInCourse = async (req, res) => {
             return res.status(400).json({ message: "Course ID and Student ID are required." });
         }
 
+        // Check if course is enabled
+        const courseDoc = await db.collection("courses").doc(courseId).get();
+        if (!courseDoc.exists) {
+            return res.status(404).json({ message: "Course not found." });
+        }
+        if (courseDoc.data().isEnabled === false) {
+            return res.status(403).json({ message: "This course is currently disabled for registration." });
+        }
+
         // Update course
         await db.collection("courses").doc(courseId).update({
             studentIds: admin.firestore.FieldValue.arrayUnion(studentId)
@@ -294,6 +304,39 @@ exports.enrollInCourse = async (req, res) => {
         res.status(200).json({ message: "Enrolled successfully." });
     } catch (error) {
         console.error("Error enrolling in course:", error);
+        res.status(500).json({ message: "Internal server error." });
+    }
+};
+
+// Toggle course enabled/disabled status
+exports.updateCourseStatus = async (req, res) => {
+    if (!db) {
+        return res.status(500).json({ message: "Database not initialized." });
+    }
+
+    try {
+        const { id } = req.params;
+        const { isEnabled } = req.body;
+
+        if (typeof isEnabled !== "boolean") {
+            return res.status(400).json({ message: "isEnabled must be a boolean." });
+        }
+
+        const courseRef = db.collection("courses").doc(id);
+        const courseDoc = await courseRef.get();
+
+        if (!courseDoc.exists) {
+            return res.status(404).json({ message: "Course not found." });
+        }
+
+        await courseRef.update({
+            isEnabled,
+            updatedAt: new Date()
+        });
+
+        res.status(200).json({ message: `Course ${isEnabled ? 'enabled' : 'disabled'} successfully.` });
+    } catch (error) {
+        console.error("Error updating course status:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 };

@@ -43,9 +43,8 @@ function toggleProfileMenu() {
     }
 }
 
-// Force reload when navigating back/forward to ensure data is fresh
+// Force reload when navigating back/forward
 window.addEventListener("pageshow", (event) => {
-    // 1. Check if the page was restored from the BFCache (Back-Forward Cache)
     if (event.persisted) {
         window.location.reload();
         return;

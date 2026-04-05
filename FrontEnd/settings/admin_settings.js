@@ -54,13 +54,100 @@ document.addEventListener("DOMContentLoaded", async () => {
                 courses.forEach(c => {
                     const option = document.createElement("option");
                     option.value = c.id;
-                    option.textContent = `${c.code}: ${c.name}`;
+                    const isDisabled = c.isEnabled === false;
+                    option.textContent = `${c.code}: ${c.name}${isDisabled ? ' (Disabled)' : ''}`;
+                    if (isDisabled) option.style.color = "#dc3545";
                     enrollCourseSelect.appendChild(option);
+                });
+            }
+
+            // Populate Manage Status select
+            const manageStatusSelect = document.getElementById("manageStatusCourse");
+            if (manageStatusSelect) {
+                manageStatusSelect.innerHTML = '<option value="">Select a Course</option>';
+                courses.forEach(c => {
+                    const option = document.createElement("option");
+                    option.value = c.id;
+                    option.textContent = `${c.code}: ${c.name}`;
+                    manageStatusSelect.appendChild(option);
                 });
             }
         } catch (error) {
             console.error("Error loading initial data:", error);
         }
+    }
+
+    // Manage Course Status Logic
+    const manageStatusSelect = document.getElementById("manageStatusCourse");
+    const statusText = document.getElementById("currentCourseStatus");
+    const toggleStatusBtn = document.getElementById("toggleCourseStatusBtn");
+
+    if (manageStatusSelect) {
+        manageStatusSelect.addEventListener("change", () => {
+            const courseId = manageStatusSelect.value;
+            if (!courseId) {
+                statusText.textContent = "N/A";
+                toggleStatusBtn.disabled = true;
+                toggleStatusBtn.textContent = "Toggle Status";
+                return;
+            }
+
+            const course = courses.find(c => c.id === courseId);
+            if (course) {
+                const isEnabled = course.isEnabled !== false; // Default to true if undefined
+                statusText.textContent = isEnabled ? "Enabled" : "Disabled";
+                statusText.style.color = isEnabled ? "#28a745" : "#dc3545";
+                toggleStatusBtn.disabled = false;
+                toggleStatusBtn.textContent = isEnabled ? "Disable Course" : "Enable Course";
+                toggleStatusBtn.style.backgroundColor = isEnabled ? "#dc3545" : "#28a745";
+            }
+        });
+    }
+
+    if (toggleStatusBtn) {
+        toggleStatusBtn.addEventListener("click", async () => {
+            const courseId = manageStatusSelect.value;
+            if (!courseId) return;
+
+            const course = courses.find(c => c.id === courseId);
+            const currentStatus = course.isEnabled !== false;
+            const newStatus = !currentStatus;
+
+            const confirmMsg = newStatus 
+                ? "Are you sure you want to enable this course? Students and teachers will be able to register."
+                : "Are you sure you want to disable this course? This will prevent any new registrations.";
+
+            if (!confirm(confirmMsg)) return;
+
+            toggleStatusBtn.disabled = true;
+            toggleStatusBtn.textContent = "Updating...";
+
+            try {
+                const response = await fetch(`/api/courses/${courseId}/status`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ isEnabled: newStatus })
+                });
+
+                if (response.ok) {
+                    alert(`Course ${newStatus ? 'enabled' : 'disabled'} successfully!`);
+                    // Update local data and UI
+                    course.isEnabled = newStatus;
+                    statusText.textContent = newStatus ? "Enabled" : "Disabled";
+                    statusText.style.color = newStatus ? "#28a745" : "#dc3545";
+                    toggleStatusBtn.textContent = newStatus ? "Disable Course" : "Enable Course";
+                    toggleStatusBtn.style.backgroundColor = newStatus ? "#dc3545" : "#28a745";
+                } else {
+                    const error = await response.json();
+                    alert("Error updating status: " + (error.message || "Unknown error"));
+                }
+            } catch (error) {
+                console.error("Error updating course status:", error);
+                alert("Network error while updating course status.");
+            } finally {
+                toggleStatusBtn.disabled = false;
+            }
+        });
     }
 
     function updateViewItemSelect() {
@@ -77,7 +164,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             courses.forEach(c => {
                 const option = document.createElement("option");
                 option.value = c.id;
-                option.textContent = `${c.code || '???'}: ${c.name || 'Unnamed'}`;
+                const isDisabled = c.isEnabled === false;
+                option.textContent = `${c.code || '???'}: ${c.name || 'Unnamed'}${isDisabled ? ' (Disabled)' : ''}`;
+                if (isDisabled) option.style.color = "#dc3545";
                 viewItemSelect.appendChild(option);
             });
         } else if (viewBy === "major") {
