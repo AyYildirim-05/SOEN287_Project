@@ -88,3 +88,38 @@ document.addEventListener("DOMContentLoaded", () => {
     setupBackLinks();
     setupCourseSearch();
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    const sendReminderBtn = document.getElementById("sendReminderBtn");
+    if (!sendReminderBtn) return;
+
+    sendReminderBtn.addEventListener("click", async () => {
+        try {
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                alert("You must be logged in.");
+                return;
+            }
+
+            const res = await fetch("http://localhost:5500/api/assignments/send-reminders", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || "Failed to send reminders.");
+            }
+
+            alert(data.message);
+        } catch (err) {
+            console.error("Reminder send failed:", err);
+            alert("Failed to send reminders.");
+        }
+    });
+});
