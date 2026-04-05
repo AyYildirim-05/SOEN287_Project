@@ -87,6 +87,16 @@ async function fetchAndRenderAssignments() {
   }
 
   try {
+    let completedAssignments = [];
+
+    if (studentId) {
+      const studentRes = await fetch(`http://localhost:5500/api/student/${studentId}`);
+      if (studentRes.ok) {
+        const studentData = await studentRes.json();
+        completedAssignments = studentData.completedAssignments || [];
+      }
+    }
+
     const assignRes = await fetch(`http://localhost:5500/api/assignments/course/${courseId}`);
     if (!assignRes.ok) throw new Error("Failed to fetch assignments");
     const assignments = await assignRes.json();
@@ -99,18 +109,27 @@ async function fetchAndRenderAssignments() {
     }
 
     assignments.forEach(a => {
+      const assignmentId = a._id || a.id;
+
       const dueDateString = a.dueDate
-        ? new Date(a.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+        ? new Date(a.dueDate).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric"
+          })
         : "No due date";
+
       const weightDisplay = a.weight ? `Weight: ${a.weight}` : "";
 
-      const existingGrade = a.grades && studentId && a.grades[studentId] !== undefined
-        ? a.grades[studentId]
-        : null;
+      const existingGrade =
+        a.grades && studentId && a.grades[studentId] !== undefined
+          ? a.grades[studentId]
+          : null;
 
-      const gradeDisplayText = existingGrade !== null
-        ? `Grade: ${existingGrade}%`
-        : "No grade yet";
+      const gradeDisplayText =
+        existingGrade !== null ? `Grade: ${existingGrade}%` : "No grade yet";
+
+      const isCompleted = completedAssignments.includes(assignmentId);
 
       const box = document.createElement("div");
       box.className = "assignmentBox";
@@ -127,15 +146,20 @@ async function fetchAndRenderAssignments() {
         <div class="assignmentActions">
           <label>
             Completed
-            <input type="checkbox" class="completion-checkbox" data-id="${a.id}">
+            <input
+              type="checkbox"
+              class="completion-checkbox"
+              data-id="${assignmentId}"
+              ${isCompleted ? "checked" : ""}
+            >
           </label>
 
           <div class="student-only">
-            <span class="gradeDisplay" id="gradeDisplay-${a.id}">${gradeDisplayText}</span>
+            <span class="gradeDisplay" id="gradeDisplay-${assignmentId}">${gradeDisplayText}</span>
             <button
               class="enterGradeBtn"
               type="button"
-              data-id="${a.id}"
+              data-id="${assignmentId}"
               data-title="${a.title.replace(/"/g, '&quot;')}"
               data-current="${existingGrade !== null ? existingGrade : ''}"
             >
@@ -147,15 +171,15 @@ async function fetchAndRenderAssignments() {
             <button
               class="editAssignmentBtn"
               type="button"
-              data-id="${a.id}"
+              data-id="${assignmentId}"
               data-title="${a.title.replace(/"/g, '&quot;')}"
-              data-due="${a.dueDate ? new Date(a.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}"
+              data-due="${a.dueDate ? new Date(a.dueDate).toISOString().split("T")[0] : ""}"
               data-weight="${a.weight || ""}"
               data-description="${(a.description || "").replace(/"/g, '&quot;')}"
             >
               Edit
             </button>
-            <button class="removeAssignmentBtn" data-id="${a.id}" type="button">Remove</button>
+            <button class="removeAssignmentBtn" data-id="${assignmentId}" type="button">Remove</button>
           </div>
         </div>
       `;

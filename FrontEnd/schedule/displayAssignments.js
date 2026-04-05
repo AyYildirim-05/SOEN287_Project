@@ -21,7 +21,7 @@ async function loadDashboardAssignments() {
                 allCourses.forEach(course => {
                     courseMap[course.id] = course.code;
                 });
-            } 
+            }
         } catch (err) {
             console.warn("Could not fetch courses to map course codes.", err);
         }
@@ -35,18 +35,17 @@ async function loadDashboardAssignments() {
 
         if (!userId) {
             console.error("No user is logged in.");
-            return; 
+            return;
         }
 
         const res = await fetch("/api/assignments/all");
         if (!res.ok) throw new Error("Failed to fetch assignments");
-        let assignments =  await res.json();
+        let assignments = await res.json();
 
         let relevantCourses = [];
-        
+
         if (userRole === "student") {
-            const studentRes = await fetch(`/api/student/${userId}`);
-            if (studentRes.ok) {
+            const studentRes = await fetch(`/api/student/${userId}`); if (studentRes.ok) {
                 const studentData = await studentRes.json();
                 completedAssignments = studentData.completedAssignments || [];
                 relevantCourses = studentData.enrolledCourses || studentData.courses || [];
@@ -75,15 +74,15 @@ async function loadDashboardAssignments() {
         }
 
         assignments.forEach(a => {
-            const dueDateString = a.dueDate 
-            ? new Date(a.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) 
-            : "No due date";
+            const dueDateString = a.dueDate
+                ? new Date(a.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                : "No due date";
 
             const courseDisplayCode = courseMap[a.courseId] ? courseMap[a.courseId] : a.courseId;
 
             const weightDisplay = a.weight ? `Weight: ${a.weight}` : "Weight: N/A";
-            const isChecked = completedAssignments.includes(a.id) ? "checked" : "";
-
+            const assignmentId = a._id || a.id;
+            const isChecked = completedAssignments.includes(assignmentId) ? "checked" : "";
             const box = document.createElement("div");
             box.className = "assignmentBox";
 
@@ -95,7 +94,7 @@ async function loadDashboardAssignments() {
                     <p>Course: ${courseDisplayCode}</p>
                 </div>
                 <label>
-                    Completed <input type="checkbox" class="dashboard-checkbox" data-id="${a.id}" ${isChecked}>
+                    Completed <input type="checkbox" class="dashboard-checkbox" data-id="${assignmentId}" ${isChecked}>
                 </label>            
             `;
 
@@ -131,7 +130,7 @@ async function loadDashboardAssignments() {
                                 currentUser.completedAssignments.push(assignmentId);
                             }
                         } else {
-                            currentUser.completedAssignments = currentUser.completedAssignments.filter( id => id !== assignmentId);
+                            currentUser.completedAssignments = currentUser.completedAssignments.filter(id => id !== assignmentId);
                         }
                         localStorage.setItem("user", JSON.stringify(currentUser));
                     }
