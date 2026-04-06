@@ -101,6 +101,11 @@ async function loadDashboardAssignments() {
                 </label>            
             `;
 
+            // Apply the color scheme based on the assignment's original due date
+            if (typeof applyAssignmentColorScheme === "function") {
+                applyAssignmentColorScheme(box, a.dueDate);
+            }
+
             if (completedAssignments.includes(a.id) && archiveContainer) {
                 archiveContainer.appendChild(box);
             } else {
