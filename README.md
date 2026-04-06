@@ -140,22 +140,11 @@ Once the server is running, the application will be accessible at:
 
 ## User Guide
 
-### 1. What is Where? (Project Navigation)
-Understanding the interface and where to find key features:
 
-| Feature | Where in the UI | Key Code Files |
-| :--- | :--- | :--- |
-| **Authentication** | Header ("Log In" / "Sign Up") | `FrontEnd/Auths/` |
-| **Courses Dashboard** | Main Body (Left Section) | `FrontEnd/courses/`, `FrontEnd/index.html` |
-| **Assignment Schedule** | Main Body (Middle Section) | `FrontEnd/schedule/`, `FrontEnd/index.html` |
-| **Grades & GPA** | Main Body (Right Section) | `FrontEnd/Graph/`, `FrontEnd/index.html` |
-| **User Settings** | Profile Icon (Top Right) | `FrontEnd/settings/`, `FrontEnd/mainPage.js` |
-| **Course Details** | Click on any course box | `FrontEnd/courses/course.html` |
-
-### 2. What the User Needs to Do (Workflows)
+### What the User Needs to Do (Workflows)
 
 #### **Getting Started**
-1. **Launch:** Run `npm run dev` and open `http://localhost:5500`.
+1. **Launch:** Run `npm start` and open `http://localhost:5500`.
 2. **Account Creation:** Click **Sign Up**. Choose your role (**Student**, **Teacher**, or **Admin**) and fill in your details.
 3. **Login:** Use your credentials on the **Log In** page.
 
@@ -166,16 +155,22 @@ Understanding the interface and where to find key features:
 4. **Complete Tasks:** Check the "Completed" box on an assignment in the schedule to move it to your archive.
 5. **Monitor Progress:** Check the **Your Grades** section for a visual chart of your performance and your estimated GPA.
 6. **Export Data:** Use the "Export to CSV" or "Export to PDF" buttons to download your grades.
+7. **Settings**: The settings can be accessed by clicking the profile icon on top right.
 
-#### **If you are a Teacher:**
+#### **If you are a Teacher:** 
 1. **Create Course:** On the dashboard, click **+ Add Course**. Fill in the course details (Code, Name, Credits).
 2. **Manage Content:** Click on your course box. Use the "Add Assignment" button to create tasks for students.
 3. **Post Announcements:** Use the "Add Announcement" button in the course view to update your students.
 4. **Grading:** In the course view, click on the assignments or "Manage Students" to assign grades to enrolled students.
 5. **Analyze:** View the class performance graphs to see how your students are doing on average.
+6. **Settings**: The settings can be accessed by clicking the profile icon on top right.
+
 
 #### **If you are an Admin:**
 1. **Global View:** Access the dashboard to see all courses and users in the system.
-2. **System Settings:** Navigate to your settings via the profile icon to manage institutional-level data (Majors, etc.).
-3. **Analytics:** View aggregated performance data across the entire platform.
+2. **System Settings:** Navigate to your settings via the profile icon to manage institutional-level data.
+   - Can create & modify the contents of a course (assigned teacher and students) -> adding and removing.
+   - Can create majors.
+   - Enable and disable courses.
+5. **Analytics:** View aggregated performance data across the entire platform.
 
