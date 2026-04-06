@@ -144,7 +144,7 @@ function setupAddCourseModal() {
 function setupSafeDeleteModal() {
     const userRole = getRole();
 
-    if (userRole !== "teacher" || userRole !== "admin") {
+    if (userRole !== "teacher" && userRole !== "admin") {
         document.querySelectorAll(".deleteBtn").forEach(btn => btn.style.display = "none");
         return;
     }
