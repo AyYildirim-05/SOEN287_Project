@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupAddCourseModal();
     setupSafeDeleteModal();
     setupEnrollCourseModal();
-    setupUnenrollCourseModal(); 
+    setupUnenrollCourseModal();
     renderCourses();
 });
 
@@ -116,18 +116,56 @@ function setupAddCourseModal() {
     form.onsubmit = async (e) => {
         e.preventDefault();
 
-        const code = document.getElementById("mCourseCode").value.trim();
-        const name = document.getElementById("mCourseName").value.trim();
-        const credits = document.getElementById("mCredits").value.trim();
-        const section = document.getElementById("mSection").value.trim();
-        const schedule = document.getElementById("mSchedule").value.trim();
+        let code = document.getElementById("mCourseCode").value.trim();
+        let name = document.getElementById("mCourseName").value.trim();
+        let credits = document.getElementById("mCredits").value.trim();
+        let section = document.getElementById("mSection").value.trim();
+        let schedule = document.getElementById("mSchedule").value.trim();
+        const template = document.getElementById("mTemplate").value;
 
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const teacherId = user.uid || "";
         const instructorName = `${user.fname || ""} ${user.lname || ""}`.trim();
 
-        const result = await addCourseToBackend({ code, name, credits, section, instructor: instructorName, schedule, teacherId });
-        if (!result) { alert("Failed to add course to backend"); return; }
+        if (template === "programming") {
+            if (!code) code = "SOEN 287";
+            if (!name) name = "Web Programming";
+            if (!credits) credits = "3";
+            if (!section) section = "AA";
+            if (!schedule) schedule = "Tue/Thu 2:45–4:00";
+        } else if (template === "theory") {
+            if (!code) code = "COMP 232";
+            if (!name) name = "Mathematics for Computer Science";
+            if (!credits) credits = "3";
+            if (!section) section = "BB";
+            if (!schedule) schedule = "Mon/Wed 10:15–11:30";
+        } else if (template === "lab") {
+            if (!code) code = "SOEN 228";
+            if (!name) name = "System Hardware";
+            if (!credits) credits = "1.5";
+            if (!section) section = "L";
+            if (!schedule) schedule = "Fri 2:45–5:30";
+        }
+
+        if (!code || !name) {
+            alert("Please enter at least a course code and course name, or choose a template.");
+            return;
+        }
+
+        const result = await addCourseToBackend({
+            code,
+            name,
+            credits,
+            section,
+            instructor: instructorName,
+            schedule,
+            teacherId
+        });
+
+        if (!result) {
+            alert("Failed to add course to backend");
+            return;
+        }
 
         if (teacherId) {
             if (!user.teachingClasses) user.teachingClasses = [];
@@ -423,9 +461,9 @@ async function renderCourses() {
         `;
 
         // Show the right button based on role
-        const deleteBtn   = card.querySelector(".deleteBtn");
+        const deleteBtn = card.querySelector(".deleteBtn");
         const unenrollBtn = card.querySelector(".unenrollBtn");
-        if (deleteBtn)   deleteBtn.style.display   = (role === "teacher" || role === "admin") ? "block" : "none";
+        if (deleteBtn) deleteBtn.style.display = (role === "teacher" || role === "admin") ? "block" : "none";
         if (unenrollBtn) unenrollBtn.style.display = (role === "student") ? "block" : "none";
 
         const refNode = coursesContainer.querySelector(".student-only, .teacher-only");
