@@ -36,7 +36,7 @@ The system is a comprehensive management tool designed for three primary user ro
 #### **Admin Experience**
 - **System-Wide Oversight:** Access a global view of all courses, students, and teachers.
 - **Global Analytics:** View comprehensive performance graphs that aggregate data across the entire institution.
-- **Administrative Control:** (Planned) Manage user accounts and system-wide configurations.
+- **Administrative Control:** Manage user accounts and system-wide configurations.
 
 ### 2. Core Modules
 - **Authentication System:** Secure email/password login and registration powered by Firebase Auth, with role-based redirection.
