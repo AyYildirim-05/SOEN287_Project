@@ -652,12 +652,14 @@ function setupAddAssignmentModal() {
     const titleInput = document.getElementById("assignmentTitle");
     const dueDateInput = document.getElementById("assignmentDue");
     const weightInput = document.getElementById("assignmentWeight");
+    const descriptionInput = document.getElementById("assignmentDescription");
 
     if (!titleInput || !dueDateInput || !weightInput) return;
 
     const title = titleInput.value.trim();
     const dueDate = dueDateInput.value;
     const weight = weightInput.value.trim();
+    const description = descriptionInput ? descriptionInput.value.trim() : "";
 
     const userDataString = localStorage.getItem("user");
     let teacherId = "";
@@ -675,13 +677,14 @@ function setupAddAssignmentModal() {
       const response = await fetch("http://localhost:5500/api/assignments/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseId, title, dueDate, weight, teacherId })
+        body: JSON.stringify({ courseId, title, dueDate, weight, description, teacherId })
       });
 
       if (response.ok) {
         titleInput.value = "";
         dueDateInput.value = "";
         weightInput.value = "";
+        if (descriptionInput) descriptionInput.value = "";
         close();
         await fetchAndRenderAssignments();
         await drawCoursePageGraph();
