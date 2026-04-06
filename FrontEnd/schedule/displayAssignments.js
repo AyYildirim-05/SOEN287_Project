@@ -80,6 +80,8 @@ async function loadDashboardAssignments() {
 
             const courseDisplayCode = courseMap[a.courseId] ? courseMap[a.courseId] : a.courseId;
 
+            const descriptionDisplay = a.description ? a.description : "No description available.";
+
             const weightDisplay = a.weight ? `Weight: ${a.weight}` : "Weight: N/A";
             const assignmentId = a._id || a.id;
             const isChecked = completedAssignments.includes(assignmentId) ? "checked" : "";
@@ -92,6 +94,7 @@ async function loadDashboardAssignments() {
                     <p class="weightText">${weightDisplay}</p> 
                     <h5>${a.title}</h5>
                     <p>Course: ${courseDisplayCode}</p>
+                    <p class="descriptionText">${descriptionDisplay}</p>
                 </div>
                 <label>
                     Completed <input type="checkbox" class="dashboard-checkbox" data-id="${assignmentId}" ${isChecked}>

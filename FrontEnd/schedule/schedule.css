@@ -109,3 +109,11 @@
 .hidden {
     display: none !important;
 }
+
+.descriptionText {
+    margin-top: 6px;
+    color: #444;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
